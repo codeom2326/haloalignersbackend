@@ -1,0 +1,107 @@
+{
+	"info": {
+		"_postman_id": "442d86f6-98fb-4c22-a610-c6e289ae967b",
+		"name": "HaloAligners",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "55273671",
+		"_collection_link": "https://abhishek-mishra-000225-1885257.postman.co/workspace/Abhishek-Mishra's-Workspace~f283bf2d-002d-4e5b-818d-683aa549ec10/collection/55273671-442d86f6-98fb-4c22-a610-c6e289ae967b?action=share&source=collection_link&creator=55273671"
+	},
+	"item": [
+		{
+			"name": "HelloAPI",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MSIsImlhdCI6MTc3OTg3OTE4MywiZXhwIjoxNzc5OTY1NTgzfQ.wV1FCWgUYM1R81_1P0lJeRNoRqkUzAZQDLFGBIAxf-A",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/secure/hello",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"secure",
+						"hello"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LoginUser",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "test1",
+							"type": "default"
+						},
+						{
+							"key": "password",
+							"value": "password1",
+							"type": "default"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "RegisterUser",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"test5\",\r\n    \"password\": \"password5\",\r\n    \"userRole\": \"ADMIN\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
