@@ -18,6 +18,15 @@ data class AuthRequest(
     val clinicName: String
 )
 
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
+data class AuthResponse(
+    val token: String
+)
+
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(private val authService: AuthService
@@ -26,5 +35,10 @@ class AuthController(private val authService: AuthService
     @PostMapping("/register")
     fun register(@RequestBody request: AuthRequest): ResponseEntity<String> {
         return authService.registerNewUser(request)
+    }
+
+    @PostMapping("/login")
+    fun login(@RequestBody request: LoginRequest): ResponseEntity<AuthResponse> {
+        return ResponseEntity.ok(authService.login(request))
     }
 }
