@@ -21,7 +21,8 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        if (request.servletPath.contains("/api/auth")) {
+        // Use requestURI for a more reliable path check
+        if (request.requestURI.contains("/api/auth")) {
             filterChain.doFilter(request, response)
             return
         }
