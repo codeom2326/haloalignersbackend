@@ -16,5 +16,20 @@ class UserEntity(
     val password: String?,
 
     @Column(nullable = false)
-    val role: String = "USER"
+    val role: String = "USER",
+
+    @Column(nullable = false)
+    val fullName: String,
+
+    @Column(unique = true, nullable = false)
+    val email: String,
+
+    @Column(nullable = false)
+    val phone: String,
+
+    @Column
+    val gstNumber: String?,
+
+    @Column(nullable = false)
+    val clinicName: String
 )

@@ -4,9 +4,9 @@ spring:
   application:
     name: halo-aligners
   datasource:
-    url: ${DATASOURCE_URL:/haloaligners_db}
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/haloaligners_db}
+    username: ${DATASOURCE_USERNAME:omm}
+    password: ${DATASOURCE_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

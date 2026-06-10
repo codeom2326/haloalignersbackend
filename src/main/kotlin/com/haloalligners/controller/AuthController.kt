@@ -1,13 +1,22 @@
 package com.haloalligners.controller
 
-import com.haloalligners.model.UserEntity
-import com.haloalligners.repository.UserRepository
 import com.haloalligners.service.AuthService
 import org.springframework.http.ResponseEntity
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
-data class AuthRequest(val username: String, val password: String, val userRole: String)
+data class AuthRequest(
+    val username: String,
+    val password: String,
+    val userRole: String,
+    val fullName: String,
+    val email: String,
+    val phone: String,
+    val gstNumber: String?,
+    val clinicName: String
+)
 
 @RestController
 @RequestMapping("/api/auth")

@@ -1,88 +1,24 @@
 {
 	"info": {
-		"_postman_id": "442d86f6-98fb-4c22-a610-c6e289ae967b",
+		"_postman_id": "a8a1b3a0-7b1e-4b4a-9c1a-0a6d6e9e8a7b",
 		"name": "HaloAligners",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "55273671",
-		"_collection_link": "https://abhishek-mishra-000225-1885257.postman.co/workspace/Abhishek-Mishra's-Workspace~f283bf2d-002d-4e5b-818d-683aa549ec10/collection/55273671-442d86f6-98fb-4c22-a610-c6e289ae967b?action=share&source=collection_link&creator=55273671"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "HelloAPI",
+			"name": "Register Clinic",
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
+				"method": "POST",
 				"header": [
 					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MSIsImlhdCI6MTc3OTg3OTE4MywiZXhwIjoxNzc5OTY1NTgzfQ.wV1FCWgUYM1R81_1P0lJeRNoRqkUzAZQDLFGBIAxf-A",
-						"type": "default"
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
 					}
 				],
-				"url": {
-					"raw": "{{baseUrl}}/api/secure/hello",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"secure",
-						"hello"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "LoginUser",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "username",
-							"value": "test1",
-							"type": "default"
-						},
-						{
-							"key": "password",
-							"value": "password1",
-							"type": "default"
-						}
-					]
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/auth/login",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"auth",
-						"login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "RegisterUser",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"test5\",\r\n    \"password\": \"password5\",\r\n    \"userRole\": \"ADMIN\"\r\n}",
+					"raw": "{\n    \"username\": \"drsmith\",\n    \"password\": \"password123\",\n    \"userRole\": \"DOCTOR\",\n    \"fullName\": \"Dr. John Smith\",\n    \"email\": \"john.smith@example.com\",\n    \"phone\": \"1234567890\",\n    \"gstNumber\": \"GSTIN12345\",\n    \"clinicName\": \"Smith's Dental Clinic\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
