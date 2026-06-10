@@ -1,5 +1,6 @@
 package com.haloalligners.controller
 
+import com.haloalligners.dto.ApiResponse
 import com.haloalligners.service.AuthService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,7 +24,7 @@ data class LoginRequest(
     val password: String
 )
 
-data class AuthResponse(
+data class LoginResponse(
     val token: String
 )
 
@@ -33,12 +34,14 @@ class AuthController(private val authService: AuthService
 ) {
 
     @PostMapping("/register")
-    fun register(@RequestBody request: AuthRequest): ResponseEntity<String> {
+    fun register(@RequestBody request: AuthRequest): ResponseEntity<ApiResponse<Unit>> {
         return authService.registerNewUser(request)
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): ResponseEntity<AuthResponse> {
-        return ResponseEntity.ok(authService.login(request))
+    fun login(@RequestBody request: LoginRequest): ResponseEntity<ApiResponse<LoginResponse>> {
+        val loginResponse = authService.login(request)
+        val apiResponse = ApiResponse(200, "User logged in successfully", loginResponse)
+        return ResponseEntity.ok(apiResponse)
     }
 }

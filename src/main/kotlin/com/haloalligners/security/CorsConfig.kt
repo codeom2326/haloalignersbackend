@@ -15,6 +15,7 @@ class CorsConfig {
         val config = CorsConfiguration()
         config.allowCredentials = true
         config.addAllowedOrigin("https://haloaligner-smart-dental-aligner-po.vercel.app")
+        config.addAllowedOrigin("https://haloaligner-smart-dental-aligner-po-dusky.vercel.app")
         config.addAllowedHeader("*")
         config.addAllowedMethod("*")
         source.registerCorsConfiguration("/**", config)
