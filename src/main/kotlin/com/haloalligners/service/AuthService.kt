@@ -34,10 +34,18 @@ class AuthService(
             )
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response)
         }
+        if (userRepository.findByEmail(request.email) != null) {
+            val response = ApiResponse<Unit>(
+                status = HttpStatus.BAD_REQUEST.value(),
+                message = "Email already exists",
+                data = null
+            )
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response)
+        }
         val newUser = UserEntity(
             username = request.username,
             password = passwordEncoder.encode(request.password),
-            role = request.userRole,
+            role = "USER",
             fullName = request.fullName,
             email = request.email,
             phone = request.phone,
