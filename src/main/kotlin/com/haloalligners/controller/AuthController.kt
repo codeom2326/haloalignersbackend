@@ -25,7 +25,20 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
-    val token: String
+    val token: String,
+    val user: UserInfo
+)
+
+data class UserInfo(
+    val id: Long,
+    val username: String,
+    val fullName: String,
+    val email: String,
+    val phone: String,
+    val gstNumber: String?,
+    val clinicName: String,
+    val photoUrl: String?,
+    val role: String
 )
 
 @RestController

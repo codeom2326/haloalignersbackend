@@ -77,6 +77,22 @@ class AuthService(
         )
         val userDetails: UserDetails = userDetailsService.loadUserByUsername(request.username)
         val token = jwtService.generateToken(userDetails)
-        return LoginResponse(token)
+        
+        val user = userRepository.findByUsername(request.username)
+            ?: throw RuntimeException("User not found")
+        
+        val userInfo = com.haloalligners.controller.UserInfo(
+            id = user.id!!,
+            username = user.username,
+            fullName = user.fullName,
+            email = user.email,
+            phone = user.phone,
+            gstNumber = user.gstNumber,
+            clinicName = user.clinicName,
+            photoUrl = user.photoUrl,
+            role = user.role
+        )
+        
+        return LoginResponse(token, userInfo)
     }
 }

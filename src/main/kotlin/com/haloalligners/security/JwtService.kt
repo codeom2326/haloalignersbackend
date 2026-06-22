@@ -2,17 +2,27 @@ package com.haloalligners.security
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
+import java.util.Base64
 import java.util.Date
-import javax.crypto.SecretKey
+import javax.crypto.spec.SecretKeySpec
 
 @Service
-class JwtService {
+class JwtService(
+    @Value("\${jwt.secret:mySecretKeyForHaloAlignersApplicationPleaseChangeInProduction12345}")
+    private val secretKeyString: String,
+    @Value("\${jwt.expiration:86400000}")
+    private val jwtExpirationMs: Long
+) {
 
-    // Generate a secure key for HS256 algorithm
-    private val secretKey: SecretKey = Jwts.SIG.HS256.key().build()
-    private val jwtExpirationMs = 86400000L // 24 hours
+    private val secretKey: javax.crypto.SecretKey = SecretKeySpec(
+        Base64.getDecoder().decode(Base64.getEncoder().encodeToString(secretKeyString.toByteArray())),
+        0,
+        32,
+        "HmacSHA256"
+    )
 
     fun generateToken(userDetails: UserDetails): String {
         return Jwts.builder()

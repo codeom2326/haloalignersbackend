@@ -7,5 +7,12 @@ import org.springframework.boot.runApplication
 class HaloAlignersApplication
 
 fun main(args: Array<String>) {
-	runApplication<HaloAlignersApplication>(*args)
+    println("====== DEBUG ======")
+    println("Java timezone: " + java.util.TimeZone.getDefault().id)
+    println("user.timezone: " + System.getProperty("user.timezone"))
+    println("DATASOURCE_URL: " + System.getenv("DATASOURCE_URL"))
+    println("PGOPTIONS: " + System.getenv("PGOPTIONS"))
+    println("===================")
+
+    runApplication<HaloAlignersApplication>(*args)
 }
