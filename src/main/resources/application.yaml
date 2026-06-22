@@ -15,3 +15,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# IMPORTANT: For production, this should be set as an environment variable, not hardcoded.
+CLOUDINARY_URL: "cloudinary://415747494541487:dnnCEo59MiZ_h92r6dvRFYt2ssM@dmtqgldcj"

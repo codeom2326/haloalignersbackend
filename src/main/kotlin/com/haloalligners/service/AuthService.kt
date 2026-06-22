@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class AuthService(
@@ -22,10 +23,11 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val authenticationManager: AuthenticationManager,
     private val userDetailsService: UserDetailsService,
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val cloudinaryService: CloudinaryService
 ) {
 
-    fun registerNewUser(request: AuthRequest): ResponseEntity<ApiResponse<Unit>>{
+    fun registerNewUser(request: AuthRequest, photo: MultipartFile): ResponseEntity<ApiResponse<Unit>>{
         if (userRepository.findByUsername(request.username) != null) {
             val response = ApiResponse<Unit>(
                 status = HttpStatus.BAD_REQUEST.value(),
@@ -42,6 +44,9 @@ class AuthService(
             )
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response)
         }
+
+        val photoUrl = cloudinaryService.uploadFile(photo)
+
         val newUser = UserEntity(
             username = request.username,
             password = passwordEncoder.encode(request.password),
@@ -50,7 +55,8 @@ class AuthService(
             email = request.email,
             phone = request.phone,
             gstNumber = request.gstNumber,
-            clinicName = request.clinicName
+            clinicName = request.clinicName,
+            photoUrl = photoUrl
         )
         userRepository.save(newUser)
         

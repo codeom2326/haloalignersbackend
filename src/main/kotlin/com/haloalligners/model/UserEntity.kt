@@ -31,5 +31,8 @@ class UserEntity(
     val gstNumber: String?,
 
     @Column(nullable = false)
-    val clinicName: String
+    val clinicName: String,
+
+    @Column
+    val photoUrl: String? = null
 )

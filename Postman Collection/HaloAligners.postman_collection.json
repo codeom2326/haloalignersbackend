@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "Register Clinic",
+			"name": "Register Clinic (JSON)",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -24,6 +24,40 @@
 							"language": "json"
 						}
 					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Clinic (with Photo)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user",
+							"value": "{\n    \"username\": \"drjane\",\n    \"password\": \"password123\",\n    \"userRole\": \"DOCTOR\",\n    \"fullName\": \"Dr. Jane Doe\",\n    \"email\": \"jane.doe@example.com\",\n    \"phone\": \"0987654321\",\n    \"gstNumber\": \"GSTIN54321\",\n    \"clinicName\": \"Doe's Dental Care\"\n}",
+							"type": "text"
+						},
+						{
+							"key": "photo",
+							"type": "file",
+							"src": []
+						}
+					]
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/auth/register",

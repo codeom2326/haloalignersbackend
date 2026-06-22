@@ -1,12 +1,12 @@
 package com.haloalligners.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.haloalligners.dto.ApiResponse
 import com.haloalligners.service.AuthService
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 data class AuthRequest(
     val username: String,
@@ -30,12 +30,18 @@ data class LoginResponse(
 
 @RestController
 @RequestMapping("/api/auth")
-class AuthController(private val authService: AuthService
+class AuthController(
+    private val authService: AuthService,
+    private val objectMapper: ObjectMapper
 ) {
 
-    @PostMapping("/register")
-    fun register(@RequestBody request: AuthRequest): ResponseEntity<ApiResponse<Unit>> {
-        return authService.registerNewUser(request)
+    @PostMapping("/register", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun register(
+        @RequestPart("user") userJson: String,
+        @RequestPart("photo") photo: MultipartFile
+    ): ResponseEntity<ApiResponse<Unit>> {
+        val request = objectMapper.readValue(userJson, AuthRequest::class.java)
+        return authService.registerNewUser(request, photo)
     }
 
     @PostMapping("/login")
