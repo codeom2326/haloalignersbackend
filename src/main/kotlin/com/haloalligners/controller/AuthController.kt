@@ -2,7 +2,9 @@ package com.haloalligners.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.haloalligners.dto.ApiResponse
+import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
 import com.haloalligners.service.AuthService
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -11,13 +13,34 @@ import org.springframework.web.multipart.MultipartFile
 data class AuthRequest(
     val username: String,
     val password: String,
-    val userRole: String,
+    val role: String,
+    val landLine: String,
+    val mobile: String,
+    val email : String,
+    val preferredPartnerCrown: String,
+    val preferredPartnerImplants: String,
+    val registrationStatus: String,
     val fullName: String,
-    val email: String,
-    val phone: String,
+    val doctorRegistrationNumber: String,
+    val pan: String,
+    val practitionerCategory: String,
+    val businessArea: String,
+    val clinicName: String,
+    val addressLine1: String,
+    val addressLine2: String? = null,
+    val addressLine3: String? = null,
+    val addressLine4: String,
+    val addressLine5: String,
+    val isDispatchAddressSameAsInvoice: Boolean,
+    val addressProofType: String,
+    val isClinicGstRegistered: Boolean = false,
     val gstNumber: String?,
-    val clinicName: String
+    val doctorRegistrationCertificate: Boolean? = false,
+    val letterHeadOrVisitingCard: Boolean? = false,
+    val panCard: Boolean? = true
 )
+
+
 
 data class LoginRequest(
     val username: String,
@@ -31,14 +54,14 @@ data class LoginResponse(
 
 data class UserInfo(
     val id: Long,
-    val username: String,
-    val fullName: String,
-    val email: String,
-    val phone: String,
-    val gstNumber: String?,
-    val clinicName: String,
-    val photoUrl: String?,
-    val role: String
+    val userName: String,
+    val password: String,
+    val role: String,
+    val landLine: String?,
+    val mobile: String,
+    val email : String,
+    val preferredPartnerCrown: String?,
+    val preferredPartnerImplants: String?
 )
 
 @RestController
@@ -51,10 +74,15 @@ class AuthController(
     @PostMapping("/register", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun register(
         @RequestPart("user") userJson: String,
-        @RequestPart("photo") photo: MultipartFile
+        @RequestPart("addressProof") addressProof: MultipartFile,
+        @RequestPart("gstCertificate") gstCertificate: MultipartFile,
+        @RequestPart("pan") pan: MultipartFile,
+        @RequestPart("registrationCertificate") registrationCertificate: MultipartFile,
+        @RequestPart("letterheadOrVisitingCard") letterheadOrVisitingCard: MultipartFile,
+        @RequestPart("signatureOrStamp") signatureOrStamp: MultipartFile,
     ): ResponseEntity<ApiResponse<Unit>> {
         val request = objectMapper.readValue(userJson, AuthRequest::class.java)
-        return authService.registerNewUser(request, photo)
+        return authService.registerNewUser(request, addressProof, gstCertificate, pan, registrationCertificate, letterheadOrVisitingCard, signatureOrStamp)
     }
 
     @PostMapping("/login")
@@ -62,5 +90,10 @@ class AuthController(
         val loginResponse = authService.login(request)
         val apiResponse = ApiResponse(200, "User logged in successfully", loginResponse)
         return ResponseEntity.ok(apiResponse)
+    }
+
+    @GetMapping("/users")
+    fun getUsers(): ResponseEntity<List<ClinicContactsAndLabPartnersEntity>> {
+        return ResponseEntity(authService.getUsers(), HttpStatus.OK)
     }
 }
