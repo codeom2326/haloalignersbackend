@@ -1,0 +1,41 @@
+package com.haloalligners.dto
+
+import java.time.LocalDate
+
+data class GetUserResponse(
+    val username: String,
+    val role: String,
+    val email: String,
+    val landLine: String?,
+    val mobile: String,
+    val preferredPartnerCrown: String?,
+    val preferredPartnerImplants: String?,
+    val registrationStatus: String,
+    val fullName: String,
+    val doctorRegistrationNumber: String,
+    val dateOfApplication: LocalDate,
+    val pan: String,
+    val practitionerCategory: String,
+    val businessArea: String,
+    val clinicName: String,
+    val addressLine1: String,
+    val addressLine2: String?,
+    val addressLine3: String?,
+    val addressLine4: String,
+    val addressLine5: String,
+    val isDispatchAddressSameAsInvoice: Boolean,
+    val addressProofType: String,
+    val addressProofCopy: String,
+    val isClinicGstRegistered: Boolean,
+    val gstNumber: String?,
+    val panCard: Boolean?,
+    val doctorRegistrationCertificate: Boolean?,
+    val letterHeadOrVisitingCard: Boolean?,
+    val addressProofMetadata: String,
+    val gstMetadata: String?,
+    val panCardMetadata: String?,
+    val doctorRegistrationCertificateMetadata: String?,
+    val letterHeadOrVisitingCardMetadata: String,
+    val signatureAndStampMetadata: String,
+    val photoMetadata: String
+)
