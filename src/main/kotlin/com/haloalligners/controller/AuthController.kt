@@ -2,6 +2,7 @@ package com.haloalligners.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.haloalligners.dto.ApiResponse
+import com.haloalligners.dto.GetUserResponse
 import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
 import com.haloalligners.service.AuthService
 import org.springframework.http.HttpStatus
@@ -80,9 +81,13 @@ class AuthController(
         @RequestPart("registrationCertificate") registrationCertificate: MultipartFile,
         @RequestPart("letterheadOrVisitingCard") letterheadOrVisitingCard: MultipartFile,
         @RequestPart("signatureOrStamp") signatureOrStamp: MultipartFile,
+        @RequestPart("photo") photo: MultipartFile
     ): ResponseEntity<ApiResponse<Unit>> {
         val request = objectMapper.readValue(userJson, AuthRequest::class.java)
-        return authService.registerNewUser(request, addressProof, gstCertificate, pan, registrationCertificate, letterheadOrVisitingCard, signatureOrStamp)
+        return authService.registerNewUser(request,
+            addressProof, gstCertificate, pan,
+            registrationCertificate, letterheadOrVisitingCard,
+            signatureOrStamp, photo)
     }
 
     @PostMapping("/login")
@@ -93,7 +98,7 @@ class AuthController(
     }
 
     @GetMapping("/users")
-    fun getUsers(): ResponseEntity<List<ClinicContactsAndLabPartnersEntity>> {
+    fun getUsers(): ResponseEntity<List<GetUserResponse>> {
         return ResponseEntity(authService.getUsers(), HttpStatus.OK)
     }
 }

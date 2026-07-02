@@ -1,10 +1,6 @@
 package com.haloalligners.config
 
-import com.haloalligners.model.ClinicAddressDetailsEntity
-import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
-import com.haloalligners.model.DocumentMetadataEntity
-import com.haloalligners.model.DocumentVerificationAndSignatureEntity
-import com.haloalligners.model.PractitionerDetailsEntity
+import com.haloalligners.model.*
 import com.haloalligners.repository.ClinicContactsAndLabPartnersRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.dao.EmptyResultDataAccessException
@@ -72,7 +68,8 @@ class DataLoader(
                     panCardMetadata = "PAN card metadata details",
                     doctorRegistrationCertificateMetadata = "Doctor registration metadata details",
                     letterHeadOrVisitingCardMetadata = "Letter head or visiting card metadata details",
-                    signatureAndStampMetadata = "Signature and stamp metadata details"
+                    signatureAndStampMetadata = "Signature and stamp metadata details",
+                    photoMetadata = "Photo metadata details"
                 )
 
                 // Establish bidirectional relationships

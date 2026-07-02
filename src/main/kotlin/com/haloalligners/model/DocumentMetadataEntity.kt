@@ -29,5 +29,8 @@ class DocumentMetadataEntity(
     val letterHeadOrVisitingCardMetadata: String,
 
     @Column(nullable = false)
-    val signatureAndStampMetadata: String
+    val signatureAndStampMetadata: String,
+
+    @Column(nullable = false)
+    val photoMetadata: String
 )

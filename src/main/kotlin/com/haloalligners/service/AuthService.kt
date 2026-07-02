@@ -4,6 +4,7 @@ import com.haloalligners.controller.AuthRequest
 import com.haloalligners.controller.LoginRequest
 import com.haloalligners.controller.LoginResponse
 import com.haloalligners.dto.ApiResponse
+import com.haloalligners.dto.GetUserResponse
 import com.haloalligners.model.ClinicAddressDetailsEntity
 import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
 import com.haloalligners.model.DocumentMetadataEntity
@@ -40,7 +41,8 @@ class AuthService(
         pan: MultipartFile,
         registrationCertificate: MultipartFile,
         letterheadOrVisitingCard: MultipartFile,
-        signatureOrStamp: MultipartFile
+        signatureOrStamp: MultipartFile,
+        photo: MultipartFile
     ): ResponseEntity<ApiResponse<Unit>>{
         if (clinicContactsAndLabPartnersRepository.findByUsername(request.username).isPresent) {
             val response = ApiResponse<Unit>(
@@ -107,7 +109,7 @@ class AuthService(
         val registrationUrl = cloudinaryService.uploadFile(registrationCertificate)
         val letterheadOrVisitingCardUrl = cloudinaryService.uploadFile(letterheadOrVisitingCard)
         val signatureOrStampUrl = cloudinaryService.uploadFile(signatureOrStamp)
-
+        val photoUrl = cloudinaryService.uploadFile(photo)
 
 
         val superAdminDocumentMetadata = DocumentMetadataEntity(
@@ -117,16 +119,14 @@ class AuthService(
             panCardMetadata = panUrl,
             doctorRegistrationCertificateMetadata = registrationUrl,
             letterHeadOrVisitingCardMetadata = letterheadOrVisitingCardUrl,
-            signatureAndStampMetadata = signatureOrStampUrl
+            signatureAndStampMetadata = signatureOrStampUrl,
+            photoMetadata = photoUrl
         )
-
-        // Establish bidirectional relationships
         newUser.practitionerDetails = userPractionerDetails
         newUser.clinicAddressDetails = userClinicAddressDetails
         newUser.documentVerificationAndSignature = userDocumentVerificationAndSignatureEntity
         userDocumentVerificationAndSignatureEntity.documentMetadata = superAdminDocumentMetadata
 
-        // Save only the parent entity; cascading will handle the rest
         clinicContactsAndLabPartnersRepository.save(newUser)
         
         val response = ApiResponse<Unit>(
@@ -146,9 +146,7 @@ class AuthService(
         )
         val userDetails: UserDetails = userDetailsService.loadUserByUsername(request.username)
         val token = jwtService.generateToken(userDetails)
-        
         val user = clinicContactsAndLabPartnersRepository.findByUsername(request.username).orElseThrow { UsernameNotFoundException("User not found") }
-        
         val userInfo = com.haloalligners.controller.UserInfo(
             id = user.id!!,
             userName = user.username,
@@ -160,11 +158,53 @@ class AuthService(
             preferredPartnerCrown = user.preferredPartnerCrown,
             preferredPartnerImplants = user.preferredPartnerImplants
         )
-        
         return LoginResponse(token, userInfo)
     }
 
-    fun getUsers(): List<ClinicContactsAndLabPartnersEntity>{
-        return clinicContactsAndLabPartnersRepository.findAll()
+    fun getUsers(): List<GetUserResponse>{
+        val allUsers = clinicContactsAndLabPartnersRepository.findAll()
+        val usersResponseList = mutableListOf<GetUserResponse>()
+        allUsers.forEach {
+            usersResponseList.add(
+                GetUserResponse(
+                    username = it.username,
+                    role = it.role,
+                    email = it.email,
+                    landLine = it.landLine,
+                    mobile = it.mobile,
+                    preferredPartnerCrown = it.preferredPartnerCrown,
+                    preferredPartnerImplants = it.preferredPartnerImplants,
+                    registrationStatus = it.registrationStatus,
+                    fullName = it.practitionerDetails!!.fullName,
+                    doctorRegistrationNumber = it.practitionerDetails!!.doctorRegistrationNumber,
+                    dateOfApplication = it.practitionerDetails!!.dateOfApplication,
+                    pan = it.practitionerDetails!!.pan,
+                    practitionerCategory = it.practitionerDetails!!.practitionerCategory,
+                    businessArea = it.practitionerDetails!!.businessArea,
+                    clinicName = it.clinicAddressDetails!!.clinicName,
+                    addressLine1 = it.clinicAddressDetails!!.addressLine1,
+                    addressLine2 = it.clinicAddressDetails!!.addressLine2,
+                    addressLine3 = it.clinicAddressDetails!!.addressLine3,
+                    addressLine4 = it.clinicAddressDetails!!.addressLine4,
+                    addressLine5 = it.clinicAddressDetails!!.addressLine5,
+                    isDispatchAddressSameAsInvoice = it.clinicAddressDetails!!.isDispatchAddressSameAsInvoice,
+                    addressProofType = it.documentVerificationAndSignature!!.addressProofType,
+                    addressProofCopy = it.documentVerificationAndSignature!!.addressProofCopy,
+                    isClinicGstRegistered = it.documentVerificationAndSignature!!.isClinicGstRegistered,
+                    gstNumber = it.documentVerificationAndSignature!!.gstNumber,
+                    panCard = it.documentVerificationAndSignature!!.panCard,
+                    doctorRegistrationCertificate = it.documentVerificationAndSignature!!.doctorRegistrationCertificate,
+                    letterHeadOrVisitingCard = it.documentVerificationAndSignature!!.letterHeadOrVisitingCard,
+                    addressProofMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.addressProofMetadata,
+                    gstMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.gstMetadata,
+                    panCardMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.panCardMetadata,
+                    doctorRegistrationCertificateMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.doctorRegistrationCertificateMetadata,
+                    letterHeadOrVisitingCardMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.letterHeadOrVisitingCardMetadata,
+                    signatureAndStampMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.signatureAndStampMetadata,
+                    photoMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.photoMetadata
+                )
+            )
+        }
+        return usersResponseList
     }
 }
