@@ -72,6 +72,8 @@ class AuthController(
     private val objectMapper: ObjectMapper
 ) {
 
+    //changes registration
+
     @PostMapping("/register", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun register(
         @RequestPart("user") userJson: String,
