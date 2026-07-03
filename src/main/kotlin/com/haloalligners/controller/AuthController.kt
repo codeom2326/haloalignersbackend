@@ -1,69 +1,18 @@
 package com.haloalligners.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.haloalligners.dto.ApiResponse
-import com.haloalligners.dto.GetSingleUserResponse
-import com.haloalligners.dto.GetUsersResponse
+import com.haloalligners.response.ApiResponse
+import com.haloalligners.response.GetSingleUserResponse
+import com.haloalligners.response.GetUsersResponse
+import com.haloalligners.request.AuthRequest
+import com.haloalligners.request.LoginRequest
+import com.haloalligners.response.LoginResponse
 import com.haloalligners.service.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-
-data class AuthRequest(
-    val username: String,
-    val password: String,
-    val role: String,
-    val landLine: String,
-    val mobile: String,
-    val email : String,
-    val preferredPartnerCrown: String,
-    val preferredPartnerImplants: String,
-    val registrationStatus: String,
-    val fullName: String,
-    val doctorRegistrationNumber: String,
-    val pan: String,
-    val practitionerCategory: String,
-    val businessArea: String,
-    val clinicName: String,
-    val addressLine1: String,
-    val addressLine2: String? = null,
-    val addressLine3: String? = null,
-    val addressLine4: String,
-    val addressLine5: String,
-    val isDispatchAddressSameAsInvoice: Boolean,
-    val addressProofType: String,
-    val isClinicGstRegistered: Boolean = false,
-    val gstNumber: String?,
-    val doctorRegistrationCertificate: Boolean? = false,
-    val letterHeadOrVisitingCard: Boolean? = false,
-    val panCard: Boolean? = true
-)
-
-
-
-data class LoginRequest(
-    val username: String,
-    val password: String
-)
-
-data class LoginResponse(
-    val token: String,
-    val user: UserInfo
-)
-
-data class UserInfo(
-    val id: Long,
-    val userName: String,
-    val password: String,
-    val role: String,
-    val landLine: String?,
-    val mobile: String,
-    val email : String,
-    val preferredPartnerCrown: String?,
-    val preferredPartnerImplants: String?
-)
 
 @RestController
 @RequestMapping("/api/auth")
@@ -95,7 +44,7 @@ class AuthController(
     @PostMapping("/login")
     fun login(@RequestBody request: LoginRequest): ResponseEntity<ApiResponse<LoginResponse>> {
         val loginResponse = authService.login(request)
-        val apiResponse = ApiResponse(200, "User logged in successfully", loginResponse)
+        val apiResponse = ApiResponse<LoginResponse>(200, "User logged in successfully", loginResponse)
         return ResponseEntity.ok(apiResponse)
     }
 

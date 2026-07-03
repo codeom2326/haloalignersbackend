@@ -1,17 +1,18 @@
 package com.haloalligners.service
 
-import com.haloalligners.controller.AuthRequest
-import com.haloalligners.controller.LoginRequest
-import com.haloalligners.controller.LoginResponse
-import com.haloalligners.dto.ApiResponse
-import com.haloalligners.dto.GetSingleUserResponse
-import com.haloalligners.dto.GetUsersResponse
+import com.haloalligners.dto.UserInfo
+import com.haloalligners.response.ApiResponse
+import com.haloalligners.response.GetSingleUserResponse
+import com.haloalligners.response.GetUsersResponse
 import com.haloalligners.model.ClinicAddressDetailsEntity
 import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
 import com.haloalligners.model.DocumentMetadataEntity
 import com.haloalligners.model.DocumentVerificationAndSignatureEntity
 import com.haloalligners.model.PractitionerDetailsEntity
 import com.haloalligners.repository.ClinicContactsAndLabPartnersRepository
+import com.haloalligners.request.AuthRequest
+import com.haloalligners.request.LoginRequest
+import com.haloalligners.response.LoginResponse
 import com.haloalligners.security.JwtService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -148,7 +149,7 @@ class AuthService(
         val userDetails: UserDetails = userDetailsService.loadUserByUsername(request.username)
         val token = jwtService.generateToken(userDetails)
         val user = clinicContactsAndLabPartnersRepository.findByUsername(request.username).orElseThrow { UsernameNotFoundException("User not found") }
-        val userInfo = com.haloalligners.controller.UserInfo(
+        val userInfo = UserInfo(
             id = user.id!!,
             userName = user.username,
             password = passwordEncoder.encode(user.password),

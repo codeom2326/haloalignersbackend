@@ -1,0 +1,31 @@
+package com.haloalligners.request
+
+data class AuthRequest(
+    val username: String,
+    val password: String,
+    val role: String,
+    val landLine: String,
+    val mobile: String,
+    val email : String,
+    val preferredPartnerCrown: String,
+    val preferredPartnerImplants: String,
+    val registrationStatus: String,
+    val fullName: String,
+    val doctorRegistrationNumber: String,
+    val pan: String,
+    val practitionerCategory: String,
+    val businessArea: String,
+    val clinicName: String,
+    val addressLine1: String,
+    val addressLine2: String? = null,
+    val addressLine3: String? = null,
+    val addressLine4: String,
+    val addressLine5: String,
+    val isDispatchAddressSameAsInvoice: Boolean,
+    val addressProofType: String,
+    val isClinicGstRegistered: Boolean = false,
+    val gstNumber: String?,
+    val doctorRegistrationCertificate: Boolean? = false,
+    val letterHeadOrVisitingCard: Boolean? = false,
+    val panCard: Boolean? = true
+)

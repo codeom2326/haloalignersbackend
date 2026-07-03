@@ -1,4 +1,4 @@
-package com.haloalligners.dto
+package com.haloalligners.response
 
 import java.time.LocalDate
 

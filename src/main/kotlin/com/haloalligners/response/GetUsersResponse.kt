@@ -1,4 +1,4 @@
-package com.haloalligners.dto
+package com.haloalligners.response
 
 data class GetUsersResponse(
     val username: String,

@@ -1,4 +1,4 @@
-package com.haloalligners.dto
+package com.haloalligners.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
 
