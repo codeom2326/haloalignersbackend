@@ -17,7 +17,7 @@
           "formdata": [
             {
               "key": "user",
-              "value": "{\n    \"username\": \"drjane\",\n    \"password\": \"password123\",\n    \"role\": \"DOCTOR\",\n\t\"landLine\": \"19002938495\",\n\t\"mobile\": \"9876543210\",\n    \"email\": \"jane.doe@example.com\",\n\t\"preferredPartnerCrown\": \"Crown1\",\n\t\"preferredPartnerImplants\": \"Implant1\",\n\t\"registrationStatus\": \"Under Approval\",\n    \"fullName\": \"Dr. Jane Doe\",\n\t\"doctorRegistrationNumber\": \"36BVCGF09\",\n\t\"pan\": \"ABCDE1234G\",\n\t\"practitionerCategory\": \"Private Practitioner\",\n\t\"businessArea\": \"Nobel Biocare\",\n    \"clinicName\": \"Doe's Dental Care\",\n\t\"addressLine1\": \"Flat 302, 3rd Floor\",\n\t\"addressLine2\": \"Apex Aligner Heights, B-Wing\",\n\t\"addressLine3\": \"Opposite Dental Park\",\n\t\"addressLine4\": \"Kalinga Hospital Road\",\n\t\"addressLine5\": \"Bhubaneswar - 751024, Odisha\",\n\t\"isDispatchAddressSameAsInvoice\": true,\n\t\"addressProofType\": \"Aadhar Card\",\n\t\"isClinicGstRegistered\": \"\",\n    \"gstNumber\": \"22AAAAA0000A1Z5\",\n\t\"doctorRegistrationCertificate\": true,\n\t\"letterHeadOrVisitingCard\": true,\n\t\"panCard\": true\n}",
+              "value": "{\n    \"username\": \"drjane12\",\n    \"password\": \"password123\",\n    \"role\": \"USER\",\n\t\"landLine\": \"190029384952\",\n\t\"mobile\": \"98765432102\",\n    \"email\": \"jane.doe2@example.com\",\n\t\"preferredPartnerCrown\": \"Crown1\",\n\t\"preferredPartnerImplants\": \"Implant1\",\n\t\"registrationStatus\": \"Under Approval\",\n    \"fullName\": \"Dr. Jane Doe\",\n\t\"doctorRegistrationNumber\": \"36BVCGF020\",\n\t\"pan\": \"ABCDE1234I\",\n\t\"practitionerCategory\": \"Private Practitioner\",\n\t\"businessArea\": \"Nobel Biocare\",\n    \"clinicName\": \"Doe's Dental Care\",\n\t\"addressLine1\": \"Flat 302, 3rd Floor\",\n\t\"addressLine2\": \"Apex Aligner Heights, B-Wing\",\n\t\"addressLine3\": \"Opposite Dental Park\",\n\t\"addressLine4\": \"Kalinga Hospital Road\",\n\t\"addressLine5\": \"Bhubaneswar - 751024, Odisha\",\n\t\"isDispatchAddressSameAsInvoice\": true,\n\t\"addressProofType\": \"Aadhar Card\",\n\t\"isClinicGstRegistered\": \"\",\n    \"gstNumber\": \"22AAAAA0000A1Z7\",\n\t\"doctorRegistrationCertificate\": true,\n\t\"letterHeadOrVisitingCard\": true,\n\t\"panCard\": true\n}",
               "type": "text"
             },
             {
@@ -83,7 +83,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/auth/users?requestStatus=Under Approval",
+          "raw": "{{baseUrl}}/api/auth/users?requestStatus=Approved",
           "host": [
             "{{baseUrl}}"
           ],
@@ -95,8 +95,7 @@
           "query": [
             {
               "key": "requestStatus",
-              "value": "Under Approval",
-              "type": "text"
+              "value": "Approved"
             }
           ]
         }
@@ -109,7 +108,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/auth/user?id=5",
+          "raw": "{{baseUrl}}/api/auth/user?id=6",
           "host": [
             "{{baseUrl}}"
           ],
@@ -121,7 +120,7 @@
           "query": [
             {
               "key": "id",
-              "value": "5"
+              "value": "6"
             }
           ]
         }
@@ -137,7 +136,7 @@
         "method": "PUT",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/auth/users?id=5&status=Rejected",
+          "raw": "{{baseUrl}}/api/auth/users?id=6&status=Rejected",
           "host": [
             "{{baseUrl}}"
           ],
@@ -149,13 +148,11 @@
           "query": [
             {
               "key": "id",
-              "value": "5",
-              "type": "text"
+              "value": "6"
             },
             {
               "key": "status",
-              "value": "Rejected",
-              "type": "text"
+              "value": "Rejected"
             },
             {
               "key": "",
@@ -171,8 +168,28 @@
     {
       "name": "login",
       "request": {
-        "method": "GET",
-        "header": []
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"superadmin\",\r\n    \"password\": \"password\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
       },
       "response": []
     }
