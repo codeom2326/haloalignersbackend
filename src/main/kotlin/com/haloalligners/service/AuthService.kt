@@ -161,8 +161,8 @@ class AuthService(
         return LoginResponse(token, userInfo)
     }
 
-    fun getUsers(): List<GetUserResponse>{
-        val allUsers = clinicContactsAndLabPartnersRepository.findAll()
+    fun getUsers(requestStatus: String): List<GetUserResponse>{
+        val allUsers = clinicContactsAndLabPartnersRepository.findAll().filter { it.role != "SUPER_ADMIN" && it.registrationStatus == requestStatus }
         val usersResponseList = mutableListOf<GetUserResponse>()
         allUsers.forEach {
             usersResponseList.add(
@@ -206,5 +206,60 @@ class AuthService(
             )
         }
         return usersResponseList
+    }
+    fun getUser(id: Long): GetUserResponse {
+        val user = clinicContactsAndLabPartnersRepository.findById(id)
+            .orElseThrow { UsernameNotFoundException("User not found") }
+        return GetUserResponse(
+            username = user.username,
+            role = user.role,
+            email = user.email,
+            landLine = user.landLine,
+            mobile = user.mobile,
+            preferredPartnerCrown = user.preferredPartnerCrown,
+            preferredPartnerImplants = user.preferredPartnerImplants,
+            registrationStatus = user.registrationStatus,
+            fullName = user.practitionerDetails!!.fullName,
+            doctorRegistrationNumber = user.practitionerDetails!!.doctorRegistrationNumber,
+            dateOfApplication = user.practitionerDetails!!.dateOfApplication,
+            pan = user.practitionerDetails!!.pan,
+            practitionerCategory = user.practitionerDetails!!.practitionerCategory,
+            businessArea = user.practitionerDetails!!.businessArea,
+            clinicName = user.clinicAddressDetails!!.clinicName,
+            addressLine1 = user.clinicAddressDetails!!.addressLine1,
+            addressLine2 = user.clinicAddressDetails!!.addressLine2,
+            addressLine3 = user.clinicAddressDetails!!.addressLine3,
+            addressLine4 = user.clinicAddressDetails!!.addressLine4,
+            addressLine5 = user.clinicAddressDetails!!.addressLine5,
+            isDispatchAddressSameAsInvoice = user.clinicAddressDetails!!.isDispatchAddressSameAsInvoice,
+            addressProofType = user.documentVerificationAndSignature!!.addressProofType,
+            addressProofCopy = user.documentVerificationAndSignature!!.addressProofCopy,
+            isClinicGstRegistered = user.documentVerificationAndSignature!!.isClinicGstRegistered,
+            gstNumber = user.documentVerificationAndSignature!!.gstNumber,
+            panCard = user.documentVerificationAndSignature!!.panCard,
+            doctorRegistrationCertificate = user.documentVerificationAndSignature!!.doctorRegistrationCertificate,
+            letterHeadOrVisitingCard = user.documentVerificationAndSignature!!.letterHeadOrVisitingCard,
+            addressProofMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.addressProofMetadata,
+            gstMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.gstMetadata,
+            panCardMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.panCardMetadata,
+            doctorRegistrationCertificateMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.doctorRegistrationCertificateMetadata,
+            letterHeadOrVisitingCardMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.letterHeadOrVisitingCardMetadata,
+            signatureAndStampMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.signatureAndStampMetadata,
+            photoMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.photoMetadata
+        )
+
+    }
+
+    fun updateUserStatus(id: Long, status: String): ResponseEntity<ApiResponse<Unit>> {
+        val user = clinicContactsAndLabPartnersRepository.findById(id).orElseThrow { UsernameNotFoundException("User not found") }
+        user.registrationStatus = status
+        clinicContactsAndLabPartnersRepository.save(user)
+        val response = ApiResponse<Unit>(
+            status = HttpStatus.OK.value(),
+            message = "User status updated successfully",
+            data = null
+        )
+        return ResponseEntity.status(HttpStatus.OK).body(response)
+
     }
 }

@@ -3,7 +3,6 @@ package com.haloalligners.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.haloalligners.dto.ApiResponse
 import com.haloalligners.dto.GetUserResponse
-import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
 import com.haloalligners.service.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -100,7 +99,18 @@ class AuthController(
     }
 
     @GetMapping("/users")
-    fun getUsers(): ResponseEntity<List<GetUserResponse>> {
-        return ResponseEntity(authService.getUsers(), HttpStatus.OK)
+    fun getUsersByStatus(@RequestParam requestStatus: String): ResponseEntity<List<GetUserResponse>> {
+        return ResponseEntity(authService.getUsers(requestStatus), HttpStatus.OK)
+    }
+
+    @GetMapping("/user")
+    fun getUserById(@RequestParam id: Long): ResponseEntity<GetUserResponse> {
+        return ResponseEntity(authService.getUser(id), HttpStatus.OK)
+    }
+
+    @PutMapping("/users")
+    fun updateUser(@RequestParam id: Long, @RequestParam status: String
+    ): ResponseEntity<ApiResponse<Unit>> {
+        return authService.updateUserStatus(id, status)
     }
 }
