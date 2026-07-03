@@ -4,7 +4,8 @@ import com.haloalligners.controller.AuthRequest
 import com.haloalligners.controller.LoginRequest
 import com.haloalligners.controller.LoginResponse
 import com.haloalligners.dto.ApiResponse
-import com.haloalligners.dto.GetUserResponse
+import com.haloalligners.dto.GetSingleUserResponse
+import com.haloalligners.dto.GetUsersResponse
 import com.haloalligners.model.ClinicAddressDetailsEntity
 import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
 import com.haloalligners.model.DocumentMetadataEntity
@@ -161,12 +162,12 @@ class AuthService(
         return LoginResponse(token, userInfo)
     }
 
-    fun getUsers(): List<GetUserResponse>{
-        val allUsers = clinicContactsAndLabPartnersRepository.findAll()
-        val usersResponseList = mutableListOf<GetUserResponse>()
+    fun getUsers(requestStatus: String): List<GetUsersResponse>{
+        val allUsers = clinicContactsAndLabPartnersRepository.findAll().filter { it.role != "SUPER_ADMIN" && it.registrationStatus == requestStatus }
+        val usersResponseList = mutableListOf<GetUsersResponse>()
         allUsers.forEach {
             usersResponseList.add(
-                GetUserResponse(
+                GetUsersResponse(
                     username = it.username,
                     role = it.role,
                     email = it.email,
@@ -174,37 +175,65 @@ class AuthService(
                     mobile = it.mobile,
                     preferredPartnerCrown = it.preferredPartnerCrown,
                     preferredPartnerImplants = it.preferredPartnerImplants,
-                    registrationStatus = it.registrationStatus,
-                    fullName = it.practitionerDetails!!.fullName,
-                    doctorRegistrationNumber = it.practitionerDetails!!.doctorRegistrationNumber,
-                    dateOfApplication = it.practitionerDetails!!.dateOfApplication,
-                    pan = it.practitionerDetails!!.pan,
-                    practitionerCategory = it.practitionerDetails!!.practitionerCategory,
-                    businessArea = it.practitionerDetails!!.businessArea,
-                    clinicName = it.clinicAddressDetails!!.clinicName,
-                    addressLine1 = it.clinicAddressDetails!!.addressLine1,
-                    addressLine2 = it.clinicAddressDetails!!.addressLine2,
-                    addressLine3 = it.clinicAddressDetails!!.addressLine3,
-                    addressLine4 = it.clinicAddressDetails!!.addressLine4,
-                    addressLine5 = it.clinicAddressDetails!!.addressLine5,
-                    isDispatchAddressSameAsInvoice = it.clinicAddressDetails!!.isDispatchAddressSameAsInvoice,
-                    addressProofType = it.documentVerificationAndSignature!!.addressProofType,
-                    addressProofCopy = it.documentVerificationAndSignature!!.addressProofCopy,
-                    isClinicGstRegistered = it.documentVerificationAndSignature!!.isClinicGstRegistered,
-                    gstNumber = it.documentVerificationAndSignature!!.gstNumber,
-                    panCard = it.documentVerificationAndSignature!!.panCard,
-                    doctorRegistrationCertificate = it.documentVerificationAndSignature!!.doctorRegistrationCertificate,
-                    letterHeadOrVisitingCard = it.documentVerificationAndSignature!!.letterHeadOrVisitingCard,
-                    addressProofMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.addressProofMetadata,
-                    gstMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.gstMetadata,
-                    panCardMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.panCardMetadata,
-                    doctorRegistrationCertificateMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.doctorRegistrationCertificateMetadata,
-                    letterHeadOrVisitingCardMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.letterHeadOrVisitingCardMetadata,
-                    signatureAndStampMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.signatureAndStampMetadata,
-                    photoMetadata = it.documentVerificationAndSignature!!.documentMetadata!!.photoMetadata
+                    registrationStatus = it.registrationStatus
                 )
             )
         }
         return usersResponseList
+    }
+    fun getUser(id: Long): GetSingleUserResponse {
+        val user = clinicContactsAndLabPartnersRepository.findById(id)
+            .orElseThrow { UsernameNotFoundException("User not found") }
+        return GetSingleUserResponse(
+            username = user.username,
+            role = user.role,
+            email = user.email,
+            landLine = user.landLine,
+            mobile = user.mobile,
+            preferredPartnerCrown = user.preferredPartnerCrown,
+            preferredPartnerImplants = user.preferredPartnerImplants,
+            registrationStatus = user.registrationStatus,
+            fullName = user.practitionerDetails!!.fullName,
+            doctorRegistrationNumber = user.practitionerDetails!!.doctorRegistrationNumber,
+            dateOfApplication = user.practitionerDetails!!.dateOfApplication,
+            pan = user.practitionerDetails!!.pan,
+            practitionerCategory = user.practitionerDetails!!.practitionerCategory,
+            businessArea = user.practitionerDetails!!.businessArea,
+            clinicName = user.clinicAddressDetails!!.clinicName,
+            addressLine1 = user.clinicAddressDetails!!.addressLine1,
+            addressLine2 = user.clinicAddressDetails!!.addressLine2,
+            addressLine3 = user.clinicAddressDetails!!.addressLine3,
+            addressLine4 = user.clinicAddressDetails!!.addressLine4,
+            addressLine5 = user.clinicAddressDetails!!.addressLine5,
+            isDispatchAddressSameAsInvoice = user.clinicAddressDetails!!.isDispatchAddressSameAsInvoice,
+            addressProofType = user.documentVerificationAndSignature!!.addressProofType,
+            addressProofCopy = user.documentVerificationAndSignature!!.addressProofCopy,
+            isClinicGstRegistered = user.documentVerificationAndSignature!!.isClinicGstRegistered,
+            gstNumber = user.documentVerificationAndSignature!!.gstNumber,
+            panCard = user.documentVerificationAndSignature!!.panCard,
+            doctorRegistrationCertificate = user.documentVerificationAndSignature!!.doctorRegistrationCertificate,
+            letterHeadOrVisitingCard = user.documentVerificationAndSignature!!.letterHeadOrVisitingCard,
+            addressProofMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.addressProofMetadata,
+            gstMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.gstMetadata,
+            panCardMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.panCardMetadata,
+            doctorRegistrationCertificateMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.doctorRegistrationCertificateMetadata,
+            letterHeadOrVisitingCardMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.letterHeadOrVisitingCardMetadata,
+            signatureAndStampMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.signatureAndStampMetadata,
+            photoMetadata = user.documentVerificationAndSignature!!.documentMetadata!!.photoMetadata
+        )
+
+    }
+
+    fun updateUserStatus(id: Long, status: String): ResponseEntity<ApiResponse<Unit>> {
+        val user = clinicContactsAndLabPartnersRepository.findById(id).orElseThrow { UsernameNotFoundException("User not found") }
+        user.registrationStatus = status
+        clinicContactsAndLabPartnersRepository.save(user)
+        val response = ApiResponse<Unit>(
+            status = HttpStatus.OK.value(),
+            message = "User status updated successfully",
+            data = null
+        )
+        return ResponseEntity.status(HttpStatus.OK).body(response)
+
     }
 }

@@ -34,7 +34,7 @@ class ClinicContactsAndLabPartnersEntity(
     val preferredPartnerImplants: String?,
 
     @Column
-    val registrationStatus: String,
+    var registrationStatus: String,
 
     // OneToOne relationships previously in UserEntity
     @OneToOne(mappedBy = "clinicContactsAndLabPartners", cascade = [CascadeType.ALL], orphanRemoval = true)
