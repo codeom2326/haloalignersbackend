@@ -8,6 +8,7 @@ import com.haloalligners.service.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -100,16 +101,19 @@ class AuthController(
     }
 
     @GetMapping("/users")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     fun getUsersByStatus(@RequestParam requestStatus: String): ResponseEntity<List<GetUsersResponse>> {
         return ResponseEntity(authService.getUsers(requestStatus), HttpStatus.OK)
     }
 
     @GetMapping("/user")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     fun getUserById(@RequestParam id: Long): ResponseEntity<GetSingleUserResponse> {
         return ResponseEntity(authService.getUser(id), HttpStatus.OK)
     }
 
     @PutMapping("/users")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     fun updateUser(@RequestParam id: Long, @RequestParam status: String
     ): ResponseEntity<ApiResponse<Unit>> {
         return authService.updateUserStatus(id, status)

@@ -3,86 +3,83 @@ package com.haloalligners.config
 import com.haloalligners.model.*
 import com.haloalligners.repository.ClinicContactsAndLabPartnersRepository
 import org.springframework.boot.CommandLineRunner
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 @Component
 class DataLoader(
-    private val clinicContactsAndLabPartnersRepository: ClinicContactsAndLabPartnersRepository,
+    private val clinicRepository: ClinicContactsAndLabPartnersRepository,
     private val passwordEncoder: PasswordEncoder
 ) : CommandLineRunner {
 
     override fun run(vararg args: String?) {
-        try {
-            if (clinicContactsAndLabPartnersRepository.findByUsername("superadmin").isEmpty) {
-                val superadmin = ClinicContactsAndLabPartnersEntity(
-                    username = "superadmin",
-                    password = passwordEncoder.encode("password"),
-                    role = "SUPER_ADMIN",
-                    email = "superadmin@haloaligners.com",
-                    mobile = "1234567890",
-                    landLine = null,
-                    preferredPartnerCrown = "Crown",
-                    preferredPartnerImplants = "Implants",
-                    registrationStatus = "Registered"
-                )
+        if (clinicRepository.findByUsername("superadmin").isEmpty) {
+            // 1. Create the main user entity
+            val superadmin = ClinicContactsAndLabPartnersEntity(
+                username = "superadmin",
+                password = passwordEncoder.encode("admin123"), // Correct password
+                role = "SUPER_ADMIN",
+                email = "superadmin@haloaligners.com",
+                mobile = "0000000000",
+                landLine = "N/A",
+                preferredPartnerCrown = "N/A",
+                preferredPartnerImplants = "N/A",
+                registrationStatus = "APPROVED"
+            )
 
-                val superAdminPractionerDetails = PractitionerDetailsEntity(
-                    clinicContactsAndLabPartners = superadmin,
-                    fullName = "Super Admin",
-                    doctorRegistrationNumber = "1234567890",
-                    dateOfApplication = LocalDate.now(),
-                    pan = "ABCDE1234F",
-                    practitionerCategory = "Private Practitioner",
-                    businessArea = "Nobel Biocare"
-                )
+            // 2. Create related entities with placeholder data
+            val practitionerDetails = PractitionerDetailsEntity(
+                clinicContactsAndLabPartners = superadmin,
+                fullName = "Super Admin",
+                doctorRegistrationNumber = "N/A",
+                dateOfApplication = LocalDate.now(),
+                pan = "N/A",
+                practitionerCategory = "N/A",
+                businessArea = "N/A"
+            )
 
-                val superAdminClinicAddressDetails = ClinicAddressDetailsEntity(
-                    clinicContactsAndLabPartners = superadmin,
-                    clinicName = "Super Admin Clinic",
-                    addressLine1 = "123 Admin St",
-                    addressLine2 = "Suite 100",
-                    addressLine3 = "Near Clock Tower",
-                    addressLine4 = "Main Road",
-                    addressLine5 = "Admin City, 12345, State",
-                    isDispatchAddressSameAsInvoice = true
-                )
+            val clinicAddress = ClinicAddressDetailsEntity(
+                clinicContactsAndLabPartners = superadmin,
+                clinicName = "HaloAligners HQ",
+                addressLine1 = "N/A",
+                addressLine2 = null,
+                addressLine3 = null,
+                addressLine4 = "N/A",
+                addressLine5 = "N/A",
+                isDispatchAddressSameAsInvoice = false
+            )
 
-                val superAdminDocumentVerificationAndSignatureEntity = DocumentVerificationAndSignatureEntity(
-                    clinicContactsAndLabPartners = superadmin,
-                    addressProofType = "Passport",
-                    addressProofCopy = "passport_copy.jpg",
-                    isClinicGstRegistered = false,
-                    gstNumber = null,
-                    panCard = true,
-                    doctorRegistrationCertificate = true,
-                    letterHeadOrVisitingCard = true
-                )
+            val docVerification = DocumentVerificationAndSignatureEntity(
+                clinicContactsAndLabPartners = superadmin,
+                addressProofType = "N/A",
+                addressProofCopy = "N/A",
+                isClinicGstRegistered = false,
+                gstNumber = null,
+                panCard = false,
+                doctorRegistrationCertificate = false,
+                letterHeadOrVisitingCard = false
+            )
 
-                val superAdminDocumentMetadata = DocumentMetadataEntity(
-                    documentVerificationAndSignature = superAdminDocumentVerificationAndSignatureEntity,
-                    addressProofMetadata = "Address proof metadata details",
-                    gstMetadata = null,
-                    panCardMetadata = "PAN card metadata details",
-                    doctorRegistrationCertificateMetadata = "Doctor registration metadata details",
-                    letterHeadOrVisitingCardMetadata = "Letter head or visiting card metadata details",
-                    signatureAndStampMetadata = "Signature and stamp metadata details",
-                    photoMetadata = "Photo metadata details"
-                )
+            val docMetadata = DocumentMetadataEntity(
+                documentVerificationAndSignature = docVerification,
+                addressProofMetadata = "N/A",
+                gstMetadata = null,
+                panCardMetadata = "N/A",
+                doctorRegistrationCertificateMetadata = "N/A",
+                letterHeadOrVisitingCardMetadata = "N/A",
+                signatureAndStampMetadata = "N/A",
+                photoMetadata = "N/A"
+            )
 
-                // Establish bidirectional relationships
-                superadmin.practitionerDetails = superAdminPractionerDetails
-                superadmin.clinicAddressDetails = superAdminClinicAddressDetails
-                superadmin.documentVerificationAndSignature = superAdminDocumentVerificationAndSignatureEntity
-                superAdminDocumentVerificationAndSignatureEntity.documentMetadata = superAdminDocumentMetadata
+            // 3. Link entities together
+            superadmin.practitionerDetails = practitionerDetails
+            superadmin.clinicAddressDetails = clinicAddress
+            superadmin.documentVerificationAndSignature = docVerification
+            docVerification.documentMetadata = docMetadata
 
-                // Save only the parent entity; cascading will handle the rest
-                clinicContactsAndLabPartnersRepository.save(superadmin)
-            }
-        } catch (e: EmptyResultDataAccessException) {
-            println("No user found")
+            // 4. Save the parent entity
+            clinicRepository.save(superadmin)
         }
     }
 }

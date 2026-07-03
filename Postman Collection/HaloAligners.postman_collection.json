@@ -6,72 +6,231 @@
 	},
 	"item": [
 		{
-			"name": "Register Clinic (JSON)",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"username\": \"drsmith\",\n    \"password\": \"password123\",\n    \"userRole\": \"DOCTOR\",\n    \"fullName\": \"Dr. John Smith\",\n    \"email\": \"john.smith@example.com\",\n    \"phone\": \"1234567890\",\n    \"gstNumber\": \"GSTIN12345\",\n    \"clinicName\": \"Smith's Dental Clinic\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Auth",
+			"description": "Public endpoints for authentication and registration.",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set(\"authToken\", pm.response.json().data.token);",
+									"    console.log(\"Auth Token has been set!\");",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
 						}
-					}
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/auth/register",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"api",
-						"auth",
-						"register"
-					]
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"superadmin\",\n    \"password\": \"admin123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Clinic (with Photo)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user",
+									"value": "{\n    \"username\": \"drjane\",\n    \"password\": \"password123\",\n    \"role\": \"DOCTOR\",\n    \"fullName\": \"Dr. Jane Doe\",\n    \"email\": \"jane.doe@example.com\",\n    \"mobile\": \"0987654321\",\n    \"gstNumber\": \"GSTIN54321\",\n    \"clinicName\": \"Doe's Dental Care\",\n    \"landLine\": \"022-1234567\",\n    \"preferredPartnerCrown\": \"Zirconia\",\n    \"preferredPartnerImplants\": \"Nobel Biocare\",\n    \"registrationStatus\": \"PENDING\",\n    \"doctorRegistrationNumber\": \"DREG12345\",\n    \"pan\": \"ABCDE1234F\",\n    \"practitionerCategory\": \"General Dentist\",\n    \"businessArea\": \"Mumbai\",\n    \"addressLine1\": \"123 Dental Street\",\n    \"addressLine2\": \"Near Central Park\",\n    \"addressLine3\": \"\",\n    \"addressLine4\": \"Mumbai\",\n    \"addressLine5\": \"Maharashtra\",\n    \"isDispatchAddressSameAsInvoice\": true,\n    \"addressProofType\": \"Electricity Bill\",\n    \"isClinicGstRegistered\": true\n}",
+									"contentType": "application/json",
+									"type": "text"
+								},
+								{
+									"key": "addressProof",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "gstCertificate",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "pan",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "registrationCertificate",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "letterheadOrVisitingCard",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "signatureOrStamp",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "photo",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "Register Clinic (with Photo)",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "user",
-							"value": "{\n    \"username\": \"drjane\",\n    \"password\": \"password123\",\n    \"userRole\": \"DOCTOR\",\n    \"fullName\": \"Dr. Jane Doe\",\n    \"email\": \"jane.doe@example.com\",\n    \"phone\": \"0987654321\",\n    \"gstNumber\": \"GSTIN54321\",\n    \"clinicName\": \"Doe's Dental Care\"\n}",
-							"type": "text"
-						},
-						{
-							"key": "photo",
-							"type": "file",
-							"src": []
+			"name": "Users",
+			"description": "Endpoints for managing users. Requires authentication.",
+			"item": [
+				{
+					"name": "Get Users by Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/users?requestStatus=PENDING",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users"
+							],
+							"query": [
+								{
+									"key": "requestStatus",
+									"value": "PENDING",
+									"description": "Filter users by status (e.g., PENDING, APPROVED, REJECTED)"
+								}
+							]
 						}
-					]
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{baseUrl}}/api/auth/register",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"auth",
-						"register"
-					]
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/user?id=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"user"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Status",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/users?id=1&status=APPROVED",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								},
+								{
+									"key": "status",
+									"value": "APPROVED"
+								}
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{authToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8090"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"description": "This is set automatically by the Login request."
 		}
 	]
 }
