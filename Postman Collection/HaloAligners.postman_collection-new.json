@@ -1,0 +1,180 @@
+{
+  "info": {
+    "_postman_id": "df04defe-9d95-4a91-bdc4-5219af76633a",
+    "name": "HaloAligners",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55273671",
+    "_collection_link": "https://go.postman.co/collection/55273671-df04defe-9d95-4a91-bdc4-5219af76633a?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Register Clinic (with Photo)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "user",
+              "value": "{\n    \"username\": \"drjane\",\n    \"password\": \"password123\",\n    \"role\": \"DOCTOR\",\n\t\"landLine\": \"19002938495\",\n\t\"mobile\": \"9876543210\",\n    \"email\": \"jane.doe@example.com\",\n\t\"preferredPartnerCrown\": \"Crown1\",\n\t\"preferredPartnerImplants\": \"Implant1\",\n\t\"registrationStatus\": \"Under Approval\",\n    \"fullName\": \"Dr. Jane Doe\",\n\t\"doctorRegistrationNumber\": \"36BVCGF09\",\n\t\"pan\": \"ABCDE1234G\",\n\t\"practitionerCategory\": \"Private Practitioner\",\n\t\"businessArea\": \"Nobel Biocare\",\n    \"clinicName\": \"Doe's Dental Care\",\n\t\"addressLine1\": \"Flat 302, 3rd Floor\",\n\t\"addressLine2\": \"Apex Aligner Heights, B-Wing\",\n\t\"addressLine3\": \"Opposite Dental Park\",\n\t\"addressLine4\": \"Kalinga Hospital Road\",\n\t\"addressLine5\": \"Bhubaneswar - 751024, Odisha\",\n\t\"isDispatchAddressSameAsInvoice\": true,\n\t\"addressProofType\": \"Aadhar Card\",\n\t\"isClinicGstRegistered\": \"\",\n    \"gstNumber\": \"22AAAAA0000A1Z5\",\n\t\"doctorRegistrationCertificate\": true,\n\t\"letterHeadOrVisitingCard\": true,\n\t\"panCard\": true\n}",
+              "type": "text"
+            },
+            {
+              "key": "addressProof",
+              "type": "file",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.04 PM.jpeg"
+            },
+            {
+              "key": "gstCertificate",
+              "type": "file",
+              "uuid": "2d385f11-c580-4f2c-8203-a98a0af66434",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.04 PM1.jpeg"
+            },
+            {
+              "key": "pan",
+              "type": "file",
+              "uuid": "a3d9d1a8-6646-48e1-bc0c-80b6b3efe7b3",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.05 PM.jpeg"
+            },
+            {
+              "key": "registrationCertificate",
+              "type": "file",
+              "uuid": "ea64363e-598b-4933-a417-0553e830e8e1",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.05 PM1.jpeg"
+            },
+            {
+              "key": "letterheadOrVisitingCard",
+              "type": "file",
+              "uuid": "72f08322-2d3f-46bb-8df4-6318e3ac7538",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.05 PM2.jpeg"
+            },
+            {
+              "key": "signatureOrStamp",
+              "type": "file",
+              "uuid": "d005e82e-2eb2-4785-9ec2-79b7e7553b6d",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.06 PM4.jpeg"
+            },
+            {
+              "key": "photo",
+              "type": "file",
+              "uuid": "14fc0aad-1a8b-4e33-820a-a056aff2ff83",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.06 PM5.jpeg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getAllUsersByStatus",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/users?requestStatus=Under Approval",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "requestStatus",
+              "value": "Under Approval",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getAllUsersById",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/user?id=5",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "user"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "5"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "updateUserStatus",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/users?id=5&status=Rejected",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "5",
+              "type": "text"
+            },
+            {
+              "key": "status",
+              "value": "Rejected",
+              "type": "text"
+            },
+            {
+              "key": "",
+              "value": null,
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
