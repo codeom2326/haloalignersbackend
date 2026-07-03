@@ -2,7 +2,7 @@ package com.haloalligners.dto
 
 import java.time.LocalDate
 
-data class GetUserResponse(
+data class GetSingleUserResponse(
     val username: String,
     val role: String,
     val email: String,

@@ -2,7 +2,8 @@ package com.haloalligners.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.haloalligners.dto.ApiResponse
-import com.haloalligners.dto.GetUserResponse
+import com.haloalligners.dto.GetSingleUserResponse
+import com.haloalligners.dto.GetUsersResponse
 import com.haloalligners.service.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -99,12 +100,12 @@ class AuthController(
     }
 
     @GetMapping("/users")
-    fun getUsersByStatus(@RequestParam requestStatus: String): ResponseEntity<List<GetUserResponse>> {
+    fun getUsersByStatus(@RequestParam requestStatus: String): ResponseEntity<List<GetUsersResponse>> {
         return ResponseEntity(authService.getUsers(requestStatus), HttpStatus.OK)
     }
 
     @GetMapping("/user")
-    fun getUserById(@RequestParam id: Long): ResponseEntity<GetUserResponse> {
+    fun getUserById(@RequestParam id: Long): ResponseEntity<GetSingleUserResponse> {
         return ResponseEntity(authService.getUser(id), HttpStatus.OK)
     }
 
