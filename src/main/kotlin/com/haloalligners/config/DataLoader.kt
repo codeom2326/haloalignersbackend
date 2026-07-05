@@ -93,7 +93,8 @@ class DataLoader(
             landLine = "N/A",
             preferredPartnerCrown = "N/A",
             preferredPartnerImplants = "N/A",
-            registrationStatus = "PENDING"
+            registrationStatus = "PENDING",
+            registrationDate = LocalDate.now()
         )
         val practitionerDetails = PractitionerDetailsEntity(
             clinicContactsAndLabPartners = testUser,

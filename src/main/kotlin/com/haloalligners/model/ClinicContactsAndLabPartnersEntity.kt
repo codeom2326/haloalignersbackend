@@ -1,6 +1,7 @@
 package com.haloalligners.model
 
 import jakarta.persistence.*
+import java.time.LocalDate
 
 @Entity
 @Table(name = "clinic_contacts_lab_partners")
@@ -35,6 +36,9 @@ class ClinicContactsAndLabPartnersEntity(
 
     @Column
     var registrationStatus: String,
+
+    @Column(nullable = false)
+    val registrationDate: LocalDate = LocalDate.now(),
 
     // OneToOne relationships previously in UserEntity
     @OneToOne(mappedBy = "clinicContactsAndLabPartners", cascade = [CascadeType.ALL], orphanRemoval = true)

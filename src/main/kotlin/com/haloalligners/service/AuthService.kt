@@ -192,7 +192,8 @@ class AuthService(
                 mobile = it.mobile,
                 preferredPartnerCrown = it.preferredPartnerCrown,
                 preferredPartnerImplants = it.preferredPartnerImplants,
-                registrationStatus = it.registrationStatus
+                registrationStatus = it.registrationStatus,
+                registrationDate = it.registrationDate
             )
         }
         return usersResponseList
@@ -209,6 +210,7 @@ class AuthService(
             preferredPartnerCrown = user.preferredPartnerCrown,
             preferredPartnerImplants = user.preferredPartnerImplants,
             registrationStatus = user.registrationStatus,
+            registrationDate = user.registrationDate,
             fullName = user.practitionerDetails!!.fullName,
             doctorRegistrationNumber = user.practitionerDetails!!.doctorRegistrationNumber,
             dateOfApplication = user.practitionerDetails!!.dateOfApplication,

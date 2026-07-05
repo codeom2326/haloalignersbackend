@@ -11,6 +11,7 @@ data class GetSingleUserResponse(
     val preferredPartnerCrown: String?,
     val preferredPartnerImplants: String?,
     val registrationStatus: String,
+    val registrationDate: LocalDate,
     val fullName: String,
     val doctorRegistrationNumber: String,
     val dateOfApplication: LocalDate,
