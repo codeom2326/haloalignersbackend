@@ -31,7 +31,7 @@ data class AuthRequest(
     val addressLine1: String,
     val addressLine2: String? = null,
     val addressLine3: String? = null,
-    val addressLine4: String,
+    val addressLine4: String? = null,
     val addressLine5: String,
     val isDispatchAddressSameAsInvoice: Boolean,
     val addressProofType: String,
@@ -114,8 +114,17 @@ class AuthController(
 
     @PutMapping("/users")
     @PreAuthorize("hasAuthority('SUPER_ADMIN')")
-    fun updateUser(@RequestParam id: Long, @RequestParam status: String
+    fun updateUser(
+        @RequestParam id: Long, 
+        @RequestParam status: String,
+        @RequestParam(required = false) reason: String?
     ): ResponseEntity<ApiResponse<Unit>> {
-        return authService.updateUserStatus(id, status)
+        return authService.updateUserStatus(id, status, reason)
+    }
+
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
+    fun deleteUser(@PathVariable id: Long): ResponseEntity<ApiResponse<Unit>> {
+        return authService.deleteUser(id)
     }
 }

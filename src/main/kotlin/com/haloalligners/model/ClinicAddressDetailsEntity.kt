@@ -25,8 +25,8 @@ class ClinicAddressDetailsEntity(
     @Column
     val addressLine3: String? = null,
 
-    @Column(nullable = false)
-    val addressLine4: String = "",
+    @Column
+    val addressLine4: String? = null,
 
     @Column(nullable = false)
     val addressLine5: String = "",

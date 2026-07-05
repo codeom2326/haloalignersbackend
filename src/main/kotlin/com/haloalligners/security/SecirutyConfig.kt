@@ -32,9 +32,7 @@ class SecurityConfig(
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/auth/users").authenticated()
-                    .requestMatchers(HttpMethod.GET, "/api/auth/user").authenticated()
-                    .requestMatchers(HttpMethod.PUT, "/api/auth/users").authenticated()
+                    .requestMatchers("/api/treatment/**").authenticated()
                     .anyRequest().authenticated()
             }
             .sessionManagement { session ->

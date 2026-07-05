@@ -7,13 +7,10 @@ import com.haloalligners.dto.ApiResponse
 import com.haloalligners.dto.GetSingleUserResponse
 import com.haloalligners.dto.GetUsersResponse
 import com.haloalligners.exception.DuplicateValueException
-import com.haloalligners.model.ClinicAddressDetailsEntity
-import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
-import com.haloalligners.model.DocumentMetadataEntity
-import com.haloalligners.model.DocumentVerificationAndSignatureEntity
-import com.haloalligners.model.PractitionerDetailsEntity
+import com.haloalligners.model.*
 import com.haloalligners.repository.ClinicContactsAndLabPartnersRepository
 import com.haloalligners.repository.PractitionerDetailsRepository
+import com.haloalligners.repository.RejectedUserRepository
 import com.haloalligners.security.JwtService
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
@@ -25,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 import java.util.regex.Pattern
@@ -33,6 +31,7 @@ import java.util.regex.Pattern
 class AuthService(
     private val clinicContactsAndLabPartnersRepository: ClinicContactsAndLabPartnersRepository,
     private val practitionerDetailsRepository: PractitionerDetailsRepository,
+    private val rejectedUserRepository: RejectedUserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val authenticationManager: AuthenticationManager,
     private val userDetailsService: UserDetailsService,
@@ -40,6 +39,7 @@ class AuthService(
     private val cloudinaryService: CloudinaryService
 ) {
 
+    @Transactional
     fun registerNewUser(
         request: AuthRequest,
         addressProof: MultipartFile,
@@ -221,7 +221,7 @@ class AuthService(
             addressLine1 = user.clinicAddressDetails!!.addressLine1,
             addressLine2 = user.clinicAddressDetails!!.addressLine2,
             addressLine3 = user.clinicAddressDetails!!.addressLine3,
-            addressLine4 = user.clinicAddressDetails!!.addressLine4,
+            addressLine4 = user.clinicAddressDetails!!.addressLine4.toString(),
             addressLine5 = user.clinicAddressDetails!!.addressLine5,
             isDispatchAddressSameAsInvoice = user.clinicAddressDetails!!.isDispatchAddressSameAsInvoice,
             addressProofType = user.documentVerificationAndSignature!!.addressProofType,
@@ -242,16 +242,53 @@ class AuthService(
 
     }
 
-    fun updateUserStatus(id: Long, status: String): ResponseEntity<ApiResponse<Unit>> {
-        val user = clinicContactsAndLabPartnersRepository.findById(id).orElseThrow { UsernameNotFoundException("User not found") }
-        user.registrationStatus = status
-        clinicContactsAndLabPartnersRepository.save(user)
+    @Transactional
+    fun updateUserStatus(id: Long, status: String, reason: String?): ResponseEntity<ApiResponse<Unit>> {
+        val user = clinicContactsAndLabPartnersRepository.findById(id)
+            .orElseThrow { UsernameNotFoundException("User with ID $id not found") }
+
+        if (status.equals("REJECTED", ignoreCase = true)) {
+            val rejectedUser = RejectedUserEntity(
+                originalUserId = user.id!!,
+                username = user.username,
+                email = user.email,
+                mobile = user.mobile,
+                fullName = user.practitionerDetails?.fullName ?: "N/A",
+                pan = user.practitionerDetails?.pan ?: "N/A",
+                clinicName = user.clinicAddressDetails?.clinicName ?: "N/A",
+                rejectionReason = reason
+            )
+            rejectedUserRepository.save(rejectedUser)
+            clinicContactsAndLabPartnersRepository.delete(user)
+            
+            val response = ApiResponse<Unit>(
+                status = HttpStatus.OK.value(),
+                message = "User with ID $id has been rejected and moved to the rejection table.",
+                data = null
+            )
+            return ResponseEntity.ok(response)
+        } else {
+            user.registrationStatus = status
+            clinicContactsAndLabPartnersRepository.save(user)
+            val response = ApiResponse<Unit>(
+                status = HttpStatus.OK.value(),
+                message = "User status updated successfully to '$status'.",
+                data = null
+            )
+            return ResponseEntity.ok(response)
+        }
+    }
+
+    fun deleteUser(id: Long): ResponseEntity<ApiResponse<Unit>> {
+        if (!clinicContactsAndLabPartnersRepository.existsById(id)) {
+            throw UsernameNotFoundException("User with ID $id not found.")
+        }
+        clinicContactsAndLabPartnersRepository.deleteById(id)
         val response = ApiResponse<Unit>(
             status = HttpStatus.OK.value(),
-            message = "User status updated successfully",
+            message = "User with ID $id deleted successfully.",
             data = null
         )
-        return ResponseEntity.status(HttpStatus.OK).body(response)
-
+        return ResponseEntity.ok(response)
     }
 }
