@@ -22,7 +22,7 @@ data class GetSingleUserResponse(
     val addressLine1: String,
     val addressLine2: String?,
     val addressLine3: String?,
-    val addressLine4: String,
+    val addressLine4: String?,
     val addressLine5: String,
     val isDispatchAddressSameAsInvoice: Boolean,
     val addressProofType: String,

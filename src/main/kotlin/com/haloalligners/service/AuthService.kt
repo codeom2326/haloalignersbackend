@@ -175,14 +175,31 @@ class AuthService(
         return LoginResponse(token, userInfo)
     }
 
-    fun getUsers(requestStatus: String?): List<GetUsersResponse>{
+    fun getUsers(requestStatus: String?): List<GetUsersResponse> {
+        if (requestStatus.equals("REJECTED", ignoreCase = true)) {
+            return rejectedUserRepository.findAll().map {
+                GetUsersResponse(
+                    id = it.originalUserId,
+                    username = it.username,
+                    role = "USER", // Rejected users are always users
+                    email = it.email,
+                    landLine = null, // Not stored in rejection table
+                    mobile = it.mobile,
+                    preferredPartnerCrown = null, // Not stored
+                    preferredPartnerImplants = null, // Not stored
+                    registrationStatus = "REJECTED",
+                    registrationDate = it.rejectionDate.atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                )
+            }
+        }
+
         val allUsers = if (requestStatus.isNullOrBlank()) {
             clinicContactsAndLabPartnersRepository.findAll()
         } else {
             clinicContactsAndLabPartnersRepository.findAll().filter { it.registrationStatus == requestStatus }
         }
 
-        val usersResponseList = allUsers.filter { it.role != "SUPER_ADMIN" }.map {
+        return allUsers.filter { it.role != "SUPER_ADMIN" }.map {
             GetUsersResponse(
                 id = it.id!!,
                 username = it.username,
@@ -196,8 +213,8 @@ class AuthService(
                 registrationDate = it.registrationDate
             )
         }
-        return usersResponseList
     }
+
     fun getUser(id: Long): GetSingleUserResponse {
         val user = clinicContactsAndLabPartnersRepository.findById(id)
             .orElseThrow { UsernameNotFoundException("User not found") }
@@ -221,7 +238,7 @@ class AuthService(
             addressLine1 = user.clinicAddressDetails!!.addressLine1,
             addressLine2 = user.clinicAddressDetails!!.addressLine2,
             addressLine3 = user.clinicAddressDetails!!.addressLine3,
-            addressLine4 = user.clinicAddressDetails!!.addressLine4.toString(),
+            addressLine4 = user.clinicAddressDetails!!.addressLine4,
             addressLine5 = user.clinicAddressDetails!!.addressLine5,
             isDispatchAddressSameAsInvoice = user.clinicAddressDetails!!.isDispatchAddressSameAsInvoice,
             addressProofType = user.documentVerificationAndSignature!!.addressProofType,
