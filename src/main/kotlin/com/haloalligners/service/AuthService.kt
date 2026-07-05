@@ -12,6 +12,8 @@ import com.haloalligners.repository.ClinicContactsAndLabPartnersRepository
 import com.haloalligners.repository.PractitionerDetailsRepository
 import com.haloalligners.repository.RejectedUserRepository
 import com.haloalligners.security.JwtService
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -40,6 +42,7 @@ class AuthService(
 ) {
 
     @Transactional
+    @CacheEvict(value = ["users"], allEntries = true)
     fun registerNewUser(
         request: AuthRequest,
         addressProof: MultipartFile,
@@ -175,7 +178,8 @@ class AuthService(
         return LoginResponse(token, userInfo)
     }
 
-    fun getUsers(requestStatus: String?): List<GetUsersResponse> {
+    @Cacheable("users")
+    fun getUsers(requestStatus: String?): List<GetUsersResponse>{
         if (requestStatus.equals("REJECTED", ignoreCase = true)) {
             return rejectedUserRepository.findAll().map {
                 GetUsersResponse(
@@ -260,6 +264,7 @@ class AuthService(
     }
 
     @Transactional
+    @CacheEvict(value = ["users"], allEntries = true)
     fun updateUserStatus(id: Long, status: String, reason: String?): ResponseEntity<ApiResponse<Unit>> {
         val user = clinicContactsAndLabPartnersRepository.findById(id)
             .orElseThrow { UsernameNotFoundException("User with ID $id not found") }
@@ -296,6 +301,7 @@ class AuthService(
         }
     }
 
+    @CacheEvict(value = ["users"], allEntries = true)
     fun deleteUser(id: Long): ResponseEntity<ApiResponse<Unit>> {
         if (!clinicContactsAndLabPartnersRepository.existsById(id)) {
             throw UsernameNotFoundException("User with ID $id not found.")
