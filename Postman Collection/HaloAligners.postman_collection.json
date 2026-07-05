@@ -232,6 +232,39 @@
 			]
 		},
 		{
+			"name": "Cases",
+			"description": "Endpoints for managing user cases.",
+			"item": [
+				{
+					"name": "Create Case",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"caseName\": \"John Doe - Initial Aligners\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Treatment",
 			"description": "Endpoints for managing treatment stages.",
 			"item": [
@@ -256,7 +289,7 @@
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/treatment/upload-xray",
+							"raw": "{{baseUrl}}/api/treatment/upload-xray?caseId=1",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -264,6 +297,12 @@
 								"api",
 								"treatment",
 								"upload-xray"
+							],
+							"query": [
+								{
+									"key": "caseId",
+									"value": "1"
+								}
 							]
 						}
 					},
@@ -295,7 +334,7 @@
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/treatment/upload-arch",
+							"raw": "{{baseUrl}}/api/treatment/upload-arch?caseId=1",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -303,6 +342,52 @@
 								"api",
 								"treatment",
 								"upload-arch"
+							],
+							"query": [
+								{
+									"key": "caseId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Profile Image",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image_type",
+									"value": "front",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/treatment/upload-profile-image?caseId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"treatment",
+								"upload-profile-image"
+							],
+							"query": [
+								{
+									"key": "caseId",
+									"value": "1"
+								}
 							]
 						}
 					},

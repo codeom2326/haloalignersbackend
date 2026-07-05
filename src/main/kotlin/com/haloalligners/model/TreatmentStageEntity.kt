@@ -11,8 +11,8 @@ class TreatmentStageEntity(
     val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: ClinicContactsAndLabPartnersEntity,
+    @JoinColumn(name = "case_id", nullable = false)
+    val case: CaseEntity,
 
     @Column(nullable = false)
     val stage: String, // e.g., "XRAY", "Upper Arch"
