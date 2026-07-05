@@ -6,13 +6,16 @@ import com.haloalligners.controller.LoginResponse
 import com.haloalligners.dto.ApiResponse
 import com.haloalligners.dto.GetSingleUserResponse
 import com.haloalligners.dto.GetUsersResponse
+import com.haloalligners.exception.DuplicateValueException
 import com.haloalligners.model.ClinicAddressDetailsEntity
 import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
 import com.haloalligners.model.DocumentMetadataEntity
 import com.haloalligners.model.DocumentVerificationAndSignatureEntity
 import com.haloalligners.model.PractitionerDetailsEntity
 import com.haloalligners.repository.ClinicContactsAndLabPartnersRepository
+import com.haloalligners.repository.PractitionerDetailsRepository
 import com.haloalligners.security.JwtService
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
@@ -24,10 +27,12 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
+import java.util.regex.Pattern
 
 @Service
 class AuthService(
     private val clinicContactsAndLabPartnersRepository: ClinicContactsAndLabPartnersRepository,
+    private val practitionerDetailsRepository: PractitionerDetailsRepository,
     private val passwordEncoder: PasswordEncoder,
     private val authenticationManager: AuthenticationManager,
     private val userDetailsService: UserDetailsService,
@@ -45,21 +50,15 @@ class AuthService(
         signatureOrStamp: MultipartFile,
         photo: MultipartFile
     ): ResponseEntity<ApiResponse<Unit>>{
+        // Proactive checks
         if (clinicContactsAndLabPartnersRepository.findByUsername(request.username).isPresent) {
-            val response = ApiResponse<Unit>(
-                status = HttpStatus.BAD_REQUEST.value(),
-                message = "Username already exists",
-                data = null
-            )
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response)
+            throw DuplicateValueException("Username '${request.username}' already exists.")
         }
         if (clinicContactsAndLabPartnersRepository.findByEmail(request.email).isPresent) {
-            val response = ApiResponse<Unit>(
-                status = HttpStatus.BAD_REQUEST.value(),
-                message = "Email already exists",
-                data = null
-            )
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response)
+            throw DuplicateValueException("Email '${request.email}' already exists.")
+        }
+        if (practitionerDetailsRepository.findByPan(request.pan).isPresent) {
+            throw DuplicateValueException("PAN '${request.pan}' already exists.")
         }
 
         val newUser = ClinicContactsAndLabPartnersEntity(
@@ -128,7 +127,21 @@ class AuthService(
         newUser.documentVerificationAndSignature = userDocumentVerificationAndSignatureEntity
         userDocumentVerificationAndSignatureEntity.documentMetadata = superAdminDocumentMetadata
 
-        clinicContactsAndLabPartnersRepository.save(newUser)
+        try {
+            clinicContactsAndLabPartnersRepository.save(newUser)
+        } catch (e: DataIntegrityViolationException) {
+            val rootCause = e.rootCause
+            var message = "A database constraint was violated. Please check your input."
+            if (rootCause != null && rootCause.message != null) {
+                val pattern = Pattern.compile("Detail: Key \\((.*?)\\)=\\((.*?)\\) already exists.")
+                val matcher = pattern.matcher(rootCause.message!!)
+                if (matcher.find()) {
+                    val key = matcher.group(1)
+                    message = "The value for the field '$key' already exists. Please use a unique value."
+                }
+            }
+            throw DuplicateValueException(message)
+        }
         
         val response = ApiResponse<Unit>(
             status = HttpStatus.CREATED.value(),
@@ -162,21 +175,24 @@ class AuthService(
         return LoginResponse(token, userInfo)
     }
 
-    fun getUsers(requestStatus: String): List<GetUsersResponse>{
-        val allUsers = clinicContactsAndLabPartnersRepository.findAll().filter { it.role != "SUPER_ADMIN" && it.registrationStatus == requestStatus }
-        val usersResponseList = mutableListOf<GetUsersResponse>()
-        allUsers.forEach {
-            usersResponseList.add(
-                GetUsersResponse(
-                    username = it.username,
-                    role = it.role,
-                    email = it.email,
-                    landLine = it.landLine,
-                    mobile = it.mobile,
-                    preferredPartnerCrown = it.preferredPartnerCrown,
-                    preferredPartnerImplants = it.preferredPartnerImplants,
-                    registrationStatus = it.registrationStatus
-                )
+    fun getUsers(requestStatus: String?): List<GetUsersResponse>{
+        val allUsers = if (requestStatus.isNullOrBlank()) {
+            clinicContactsAndLabPartnersRepository.findAll()
+        } else {
+            clinicContactsAndLabPartnersRepository.findAll().filter { it.registrationStatus == requestStatus }
+        }
+
+        val usersResponseList = allUsers.filter { it.role != "SUPER_ADMIN" }.map {
+            GetUsersResponse(
+                id = it.id!!,
+                username = it.username,
+                role = it.role,
+                email = it.email,
+                landLine = it.landLine,
+                mobile = it.mobile,
+                preferredPartnerCrown = it.preferredPartnerCrown,
+                preferredPartnerImplants = it.preferredPartnerImplants,
+                registrationStatus = it.registrationStatus
             )
         }
         return usersResponseList

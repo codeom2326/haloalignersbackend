@@ -102,7 +102,7 @@ class AuthController(
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('SUPER_ADMIN')")
-    fun getUsersByStatus(@RequestParam requestStatus: String): ResponseEntity<List<GetUsersResponse>> {
+    fun getUsersByStatus(@RequestParam(required = false) requestStatus: String?): ResponseEntity<List<GetUsersResponse>> {
         return ResponseEntity(authService.getUsers(requestStatus), HttpStatus.OK)
     }
 
