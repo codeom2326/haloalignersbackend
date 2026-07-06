@@ -11,15 +11,16 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
 
     fun uploadFile(file: MultipartFile): String {
         try {
-            // Determine the resource type based on the file's content type
             val resourceType = when {
                 file.contentType?.startsWith("image") == true -> "image"
                 file.contentType == "application/pdf" -> "raw"
-                else -> "auto" // Let Cloudinary auto-detect for other types
+                else -> "auto"
             }
 
             val params = ObjectUtils.asMap(
-                "resource_type", resourceType
+                "resource_type", resourceType,
+                "use_filename", true,
+                "unique_filename", true
             )
 
             val uploadResult = cloudinary.uploader().upload(file.bytes, params)
