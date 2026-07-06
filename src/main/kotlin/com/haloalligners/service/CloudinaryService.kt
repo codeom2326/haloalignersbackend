@@ -11,7 +11,18 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
 
     fun uploadFile(file: MultipartFile): String {
         try {
-            val uploadResult = cloudinary.uploader().upload(file.bytes, ObjectUtils.emptyMap())
+            // Determine the resource type based on the file's content type
+            val resourceType = when {
+                file.contentType?.startsWith("image") == true -> "image"
+                file.contentType == "application/pdf" -> "raw"
+                else -> "auto" // Let Cloudinary auto-detect for other types
+            }
+
+            val params = ObjectUtils.asMap(
+                "resource_type", resourceType
+            )
+
+            val uploadResult = cloudinary.uploader().upload(file.bytes, params)
             return uploadResult["secure_url"] as String
         } catch (e: IOException) {
             throw RuntimeException("Could not store file ${file.originalFilename}. Please try again!", e)
