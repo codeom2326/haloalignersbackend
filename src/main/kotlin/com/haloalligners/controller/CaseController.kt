@@ -1,6 +1,7 @@
 package com.haloalligners.controller
 
 import com.haloalligners.dto.ApiResponse
+import com.haloalligners.dto.CaseResponse
 import com.haloalligners.model.CaseEntity
 import com.haloalligners.service.CaseService
 import org.springframework.http.HttpStatus
@@ -32,20 +33,22 @@ class CaseController(
     fun createCase(
         @AuthenticationPrincipal userDetails: UserDetails,
         @RequestBody request: CreateCaseRequest
-    ): ResponseEntity<ApiResponse<CaseEntity>> {
+    ): ResponseEntity<ApiResponse<CaseResponse>> {
         val newCase = caseService.createCase(userDetails.username, request)
+        val caseResponse = toCaseResponse(newCase)
         val response = ApiResponse(
             status = HttpStatus.CREATED.value(),
             message = "Case '${newCase.caseName}' created successfully.",
-            data = newCase
+            data = caseResponse
         )
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('SUPER_ADMIN')")
-    fun getAllCases(): ResponseEntity<List<CaseEntity>> {
-        return ResponseEntity.ok(caseService.getAllCases())
+    fun getAllCases(): ResponseEntity<List<CaseResponse>> {
+        val cases = caseService.getAllCases().map { toCaseResponse(it) }
+        return ResponseEntity.ok(cases)
     }
 
     @PutMapping("/{id}/status")
@@ -53,13 +56,28 @@ class CaseController(
     fun updateCaseStatus(
         @PathVariable id: Long,
         @RequestBody request: UpdateCaseStatusRequest
-    ): ResponseEntity<ApiResponse<CaseEntity>> {
+    ): ResponseEntity<ApiResponse<CaseResponse>> {
         val updatedCase = caseService.updateCaseStatus(id, request.status)
+        val caseResponse = toCaseResponse(updatedCase)
         val response = ApiResponse(
             status = HttpStatus.OK.value(),
             message = "Case status updated successfully to '${updatedCase.status}'.",
-            data = updatedCase
+            data = caseResponse
         )
         return ResponseEntity.ok(response)
+    }
+
+    private fun toCaseResponse(caseEntity: CaseEntity): CaseResponse {
+        return CaseResponse(
+            id = caseEntity.id,
+            userId = caseEntity.user.id,
+            caseName = caseEntity.caseName,
+            patientName = caseEntity.patientName,
+            patientAge = caseEntity.patientAge,
+            patientGender = caseEntity.patientGender,
+            existingDisease = caseEntity.existingDisease,
+            status = caseEntity.status,
+            createdAt = caseEntity.createdAt
+        )
     }
 }

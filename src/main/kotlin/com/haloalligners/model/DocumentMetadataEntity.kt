@@ -1,5 +1,6 @@
 package com.haloalligners.model
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 
 @Entity
@@ -11,6 +12,7 @@ class DocumentMetadataEntity(
 
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "document_verification_id", referencedColumnName = "id")
+    @JsonBackReference
     val documentVerificationAndSignature: DocumentVerificationAndSignatureEntity,
 
     @Column(nullable = false)

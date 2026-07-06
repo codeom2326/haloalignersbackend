@@ -1,5 +1,6 @@
 package com.haloalligners.model
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
 import java.time.Instant
 
@@ -36,5 +37,6 @@ class CaseEntity(
     val createdAt: Instant = Instant.now(),
 
     @OneToMany(mappedBy = "case", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference
     val treatmentStages: MutableList<TreatmentStageEntity> = mutableListOf()
 )

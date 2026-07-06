@@ -1,5 +1,6 @@
 package com.haloalligners.model
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 import java.time.Instant
 
@@ -12,6 +13,7 @@ class TreatmentStageEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_id", nullable = false)
+    @JsonBackReference
     val case: CaseEntity,
 
     @Column(nullable = false)

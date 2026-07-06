@@ -1,5 +1,6 @@
 package com.haloalligners.model
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 
 @Entity
@@ -11,6 +12,7 @@ class ClinicAddressDetailsEntity(
 
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "clinic_contacts_and_lab_partners_id", referencedColumnName = "id")
+    @JsonBackReference
     val clinicContactsAndLabPartners: ClinicContactsAndLabPartnersEntity,
 
     @Column(nullable = false)

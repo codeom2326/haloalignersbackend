@@ -1,5 +1,6 @@
 package com.haloalligners.model
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
 import java.time.LocalDate
 
@@ -40,13 +41,15 @@ class ClinicContactsAndLabPartnersEntity(
     @Column(nullable = false)
     val registrationDate: LocalDate = LocalDate.now(),
 
-    // OneToOne relationships previously in UserEntity
     @OneToOne(mappedBy = "clinicContactsAndLabPartners", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference
     var practitionerDetails: PractitionerDetailsEntity? = null,
 
     @OneToOne(mappedBy = "clinicContactsAndLabPartners", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference
     var clinicAddressDetails: ClinicAddressDetailsEntity? = null,
 
     @OneToOne(mappedBy = "clinicContactsAndLabPartners", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference
     var documentVerificationAndSignature: DocumentVerificationAndSignatureEntity? = null
 )

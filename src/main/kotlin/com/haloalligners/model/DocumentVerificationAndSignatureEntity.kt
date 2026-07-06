@@ -1,5 +1,7 @@
 package com.haloalligners.model
 
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
 
 @Entity
@@ -11,6 +13,7 @@ class DocumentVerificationAndSignatureEntity(
 
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "clinic_contacts_and_lab_partners_id", referencedColumnName = "id")
+    @JsonBackReference
     val clinicContactsAndLabPartners: ClinicContactsAndLabPartnersEntity,
 
     @Column(nullable = false)
@@ -35,5 +38,6 @@ class DocumentVerificationAndSignatureEntity(
     val letterHeadOrVisitingCard: Boolean? = false,
 
     @OneToOne(mappedBy = "documentVerificationAndSignature", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     var documentMetadata: DocumentMetadataEntity? = null
 )
