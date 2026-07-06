@@ -45,13 +45,13 @@ class AuthService(
     @CacheEvict(value = ["users"], allEntries = true)
     fun registerNewUser(
         request: AuthRequest,
-        addressProof: MultipartFile,
-        gstCertificate: MultipartFile,
-        pan: MultipartFile,
-        registrationCertificate: MultipartFile,
-        letterheadOrVisitingCard: MultipartFile,
-        signatureOrStamp: MultipartFile,
-        photo: MultipartFile
+        photo: MultipartFile,
+        addressProof: MultipartFile?,
+        gstCertificate: MultipartFile?,
+        panFile: MultipartFile?,
+        registrationCertificate: MultipartFile?,
+        letterheadOrVisitingCard: MultipartFile?,
+        signatureOrStamp: MultipartFile?
     ): ResponseEntity<ApiResponse<Unit>>{
         // Proactive checks
         if (clinicContactsAndLabPartnersRepository.findByUsername(request.username).isPresent) {
@@ -106,23 +106,28 @@ class AuthService(
             doctorRegistrationCertificate = request.doctorRegistrationCertificate,
             letterHeadOrVisitingCard = request.letterHeadOrVisitingCard
         )
-        val addressProofUrl = cloudinaryService.uploadFile(addressProof)
-        val gstCertificateUrl = cloudinaryService.uploadFile(gstCertificate)
-        val panUrl = cloudinaryService.uploadFile(pan)
-        val registrationUrl = cloudinaryService.uploadFile(registrationCertificate)
-        val letterheadOrVisitingCardUrl = cloudinaryService.uploadFile(letterheadOrVisitingCard)
-        val signatureOrStampUrl = cloudinaryService.uploadFile(signatureOrStamp)
-        val photoUrl = cloudinaryService.uploadFile(photo)
+
+        fun uploadFileIfPresent(file: MultipartFile?): String? {
+            return file?.takeIf { !it.isEmpty }?.let { cloudinaryService.uploadFile(it) }
+        }
+
+        val photoUrl = cloudinaryService.uploadFile(photo) // Main photo is mandatory
+        val addressProofUrl = uploadFileIfPresent(addressProof)
+        val gstCertificateUrl = uploadFileIfPresent(gstCertificate)
+        val panUrl = uploadFileIfPresent(panFile)
+        val registrationUrl = uploadFileIfPresent(registrationCertificate)
+        val letterheadOrVisitingCardUrl = uploadFileIfPresent(letterheadOrVisitingCard)
+        val signatureOrStampUrl = uploadFileIfPresent(signatureOrStamp)
 
 
         val superAdminDocumentMetadata = DocumentMetadataEntity(
             documentVerificationAndSignature = userDocumentVerificationAndSignatureEntity,
-            addressProofMetadata = addressProofUrl,
+            addressProofMetadata = addressProofUrl ?: "N/A",
             gstMetadata = gstCertificateUrl,
             panCardMetadata = panUrl,
             doctorRegistrationCertificateMetadata = registrationUrl,
-            letterHeadOrVisitingCardMetadata = letterheadOrVisitingCardUrl,
-            signatureAndStampMetadata = signatureOrStampUrl,
+            letterHeadOrVisitingCardMetadata = letterheadOrVisitingCardUrl ?: "N/A",
+            signatureAndStampMetadata = signatureOrStampUrl ?: "N/A",
             photoMetadata = photoUrl
         )
         newUser.practitionerDetails = userPractionerDetails

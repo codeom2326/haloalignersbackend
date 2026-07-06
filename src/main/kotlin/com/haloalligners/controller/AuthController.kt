@@ -73,24 +73,28 @@ class AuthController(
     private val objectMapper: ObjectMapper
 ) {
 
-    //changes registration
-
     @PostMapping("/register", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun register(
         @RequestPart("user") userJson: String,
-        @RequestPart("addressProof") addressProof: MultipartFile,
-        @RequestPart("gstCertificate") gstCertificate: MultipartFile,
-        @RequestPart("pan") pan: MultipartFile,
-        @RequestPart("registrationCertificate") registrationCertificate: MultipartFile,
-        @RequestPart("letterheadOrVisitingCard") letterheadOrVisitingCard: MultipartFile,
-        @RequestPart("signatureOrStamp") signatureOrStamp: MultipartFile,
-        @RequestPart("photo") photo: MultipartFile
+        @RequestPart("photo") photo: MultipartFile,
+        @RequestPart("addressProof", required = false) addressProof: MultipartFile?,
+        @RequestPart("gstCertificate", required = false) gstCertificate: MultipartFile?,
+        @RequestPart("pan", required = false) pan: MultipartFile?,
+        @RequestPart("registrationCertificate", required = false) registrationCertificate: MultipartFile?,
+        @RequestPart("letterheadOrVisitingCard", required = false) letterheadOrVisitingCard: MultipartFile?,
+        @RequestPart("signatureOrStamp", required = false) signatureOrStamp: MultipartFile?
     ): ResponseEntity<ApiResponse<Unit>> {
         val request = objectMapper.readValue(userJson, AuthRequest::class.java)
-        return authService.registerNewUser(request,
-            addressProof, gstCertificate, pan,
-            registrationCertificate, letterheadOrVisitingCard,
-            signatureOrStamp, photo)
+        return authService.registerNewUser(
+            request,
+            photo,
+            addressProof,
+            gstCertificate,
+            pan,
+            registrationCertificate,
+            letterheadOrVisitingCard,
+            signatureOrStamp
+        )
     }
 
     @PostMapping("/login")

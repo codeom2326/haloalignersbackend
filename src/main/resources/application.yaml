@@ -3,6 +3,10 @@ server:
 spring:
   application:
     name: halo-aligners
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 10MB
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/haloaligners_db}
     username: ${DATASOURCE_USERNAME:omm}
