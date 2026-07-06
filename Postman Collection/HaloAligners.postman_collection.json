@@ -263,6 +263,24 @@
 					"response": []
 				},
 				{
+					"name": "Get All Cases",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/cases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Update Case Status",
 					"request": {
 						"method": "PUT",

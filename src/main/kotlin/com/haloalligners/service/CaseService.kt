@@ -28,6 +28,10 @@ class CaseService(
         return caseRepository.save(newCase)
     }
 
+    fun getAllCases(): List<CaseEntity> {
+        return caseRepository.findAll()
+    }
+
     fun updateCaseStatus(caseId: Long, newStatus: String): CaseEntity {
         val case = caseRepository.findById(caseId)
             .orElseThrow { EntityNotFoundException("Case with ID $caseId not found.") }

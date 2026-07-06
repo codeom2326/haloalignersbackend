@@ -41,6 +41,12 @@ class CaseController(
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
+    @GetMapping
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
+    fun getAllCases(): ResponseEntity<List<CaseEntity>> {
+        return ResponseEntity.ok(caseService.getAllCases())
+    }
+
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     fun updateCaseStatus(
