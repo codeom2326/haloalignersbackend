@@ -28,6 +28,7 @@ class CaseController(
     private val caseService: CaseService
 ) {
     @PostMapping
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
     fun createCase(
         @AuthenticationPrincipal userDetails: UserDetails,
         @RequestBody request: CreateCaseRequest
