@@ -5,12 +5,10 @@ import com.haloalligners.model.CaseEntity
 import com.haloalligners.service.CaseService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 data class CreateCaseRequest(
     val caseName: String,
@@ -18,6 +16,10 @@ data class CreateCaseRequest(
     val patientAge: Int,
     val patientGender: String,
     val existingDisease: String?
+)
+
+data class UpdateCaseStatusRequest(
+    val status: String
 )
 
 @RestController
@@ -37,5 +39,20 @@ class CaseController(
             data = newCase
         )
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
+    fun updateCaseStatus(
+        @PathVariable id: Long,
+        @RequestBody request: UpdateCaseStatusRequest
+    ): ResponseEntity<ApiResponse<CaseEntity>> {
+        val updatedCase = caseService.updateCaseStatus(id, request.status)
+        val response = ApiResponse(
+            status = HttpStatus.OK.value(),
+            message = "Case status updated successfully to '${updatedCase.status}'.",
+            data = updatedCase
+        )
+        return ResponseEntity.ok(response)
     }
 }

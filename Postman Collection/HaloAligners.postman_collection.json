@@ -261,6 +261,35 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Update Case Status",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"Running\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"status"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

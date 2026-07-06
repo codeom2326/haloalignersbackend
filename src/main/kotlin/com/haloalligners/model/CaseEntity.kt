@@ -30,7 +30,7 @@ class CaseEntity(
     val existingDisease: String?,
 
     @Column(nullable = false)
-    var status: String = "PENDING_IMAGES", // Initial status
+    var status: String = "Before Start", // Initial status
 
     @Column(nullable = false)
     val createdAt: Instant = Instant.now(),
