@@ -13,7 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 data class CreateCaseRequest(
-    val caseName: String
+    val caseName: String,
+    val patientName: String,
+    val patientAge: Int,
+    val patientGender: String,
+    val existingDisease: String?
 )
 
 @RestController
@@ -26,7 +30,7 @@ class CaseController(
         @AuthenticationPrincipal userDetails: UserDetails,
         @RequestBody request: CreateCaseRequest
     ): ResponseEntity<ApiResponse<CaseEntity>> {
-        val newCase = caseService.createCase(userDetails.username, request.caseName)
+        val newCase = caseService.createCase(userDetails.username, request)
         val response = ApiResponse(
             status = HttpStatus.CREATED.value(),
             message = "Case '${newCase.caseName}' created successfully.",

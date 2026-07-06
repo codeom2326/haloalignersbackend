@@ -18,6 +18,18 @@ class CaseEntity(
     var caseName: String,
 
     @Column(nullable = false)
+    val patientName: String,
+
+    @Column(nullable = false)
+    val patientAge: Int,
+
+    @Column(nullable = false)
+    val patientGender: String,
+
+    @Column(nullable = true, length = 1000)
+    val existingDisease: String?,
+
+    @Column(nullable = false)
     var status: String = "PENDING_IMAGES", // Initial status
 
     @Column(nullable = false)

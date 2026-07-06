@@ -242,7 +242,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"caseName\": \"John Doe - Initial Aligners\"\n}",
+							"raw": "{\n    \"caseName\": \"John Doe - Initial Aligners\",\n    \"patientName\": \"John Doe\",\n    \"patientAge\": 35,\n    \"patientGender\": \"Male\",\n    \"existingDisease\": \"None\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
