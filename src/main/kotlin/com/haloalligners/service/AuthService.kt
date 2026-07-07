@@ -28,8 +28,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
-import java.util.concurrent.Callable
-import java.util.concurrent.FutureTask
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
@@ -45,7 +45,6 @@ class AuthService(
     private val cloudinaryService: CloudinaryService
 ) {
     private val logger = LoggerFactory.getLogger(AuthService::class.java)
-    private val UPLOAD_TIMEOUT_SECONDS = 30L
 
     @Transactional
     @CacheEvict(value = ["users"], allEntries = true)
@@ -58,7 +57,7 @@ class AuthService(
         registrationCertificate: MultipartFile?,
         letterheadOrVisitingCard: MultipartFile?,
         signatureOrStamp: MultipartFile?
-    ): ResponseEntity<ApiResponse<Unit>>{
+    ): ResponseEntity<ApiResponse<Unit>> {
         // Proactive checks
         if (clinicContactsAndLabPartnersRepository.findByUsername(request.username).isPresent) {
             throw DuplicateValueException("Username '${request.username}' already exists.")
@@ -113,17 +112,49 @@ class AuthService(
             letterHeadOrVisitingCard = request.letterHeadOrVisitingCard
         )
 
-        // Upload files with timeout protection
-        // Photo is mandatory - fail registration if it doesn't upload successfully
-        val photoUrl = uploadWithTimeoutStrict(photo, "photo")
-        
-        // Optional files - gracefully degrade to "N/A" if upload fails
-        val addressProofUrl = if (addressProof?.isEmpty == false) uploadWithTimeoutOptional(addressProof, "addressProof") else null
-        val gstCertificateUrl = if (gstCertificate?.isEmpty == false) uploadWithTimeoutOptional(gstCertificate, "gstCertificate") else null
-        val panUrl = if (panFile?.isEmpty == false) uploadWithTimeoutOptional(panFile, "panFile") else null
-        val registrationUrl = if (registrationCertificate?.isEmpty == false) uploadWithTimeoutOptional(registrationCertificate, "registrationCertificate") else null
-        val letterheadOrVisitingCardUrl = if (letterheadOrVisitingCard?.isEmpty == false) uploadWithTimeoutOptional(letterheadOrVisitingCard, "letterheadOrVisitingCard") else null
-        val signatureOrStampUrl = if (signatureOrStamp?.isEmpty == false) uploadWithTimeoutOptional(signatureOrStamp, "signatureOrStamp") else null
+        val photoUrl: String
+        val addressProofUrl: String?
+        val gstCertificateUrl: String?
+        val panUrl: String?
+        val registrationUrl: String?
+        val letterheadOrVisitingCardUrl: String?
+        val signatureOrStampUrl: String?
+
+        try {
+            Executors.newVirtualThreadPerTaskExecutor().use { executor ->
+                val photoFuture = CompletableFuture.supplyAsync({ cloudinaryService.uploadFile(photo) }, executor)
+                val addressProofFuture = addressProof?.let { f -> CompletableFuture.supplyAsync({ cloudinaryService.uploadFile(f) }, executor) }
+                val gstCertificateFuture = gstCertificate?.let { f -> CompletableFuture.supplyAsync({ cloudinaryService.uploadFile(f) }, executor) }
+                val panFuture = panFile?.let { f -> CompletableFuture.supplyAsync({ cloudinaryService.uploadFile(f) }, executor) }
+                val registrationFuture = registrationCertificate?.let { f -> CompletableFuture.supplyAsync({ cloudinaryService.uploadFile(f) }, executor) }
+                val letterheadOrVisitingCardFuture = letterheadOrVisitingCard?.let { f -> CompletableFuture.supplyAsync({ cloudinaryService.uploadFile(f) }, executor) }
+                val signatureOrStampFuture = signatureOrStamp?.let { f -> CompletableFuture.supplyAsync({ cloudinaryService.uploadFile(f) }, executor) }
+
+                val allFutures = listOfNotNull(
+                    photoFuture,
+                    addressProofFuture,
+                    gstCertificateFuture,
+                    panFuture,
+                    registrationFuture,
+                    letterheadOrVisitingCardFuture,
+                    signatureOrStampFuture
+                ).toTypedArray()
+
+                CompletableFuture.allOf(*allFutures).get(120, TimeUnit.SECONDS)
+
+                photoUrl = photoFuture.join()
+                addressProofUrl = addressProofFuture?.join()
+                gstCertificateUrl = gstCertificateFuture?.join()
+                panUrl = panFuture?.join()
+                registrationUrl = registrationFuture?.join()
+                letterheadOrVisitingCardUrl = letterheadOrVisitingCardFuture?.join()
+                signatureOrStampUrl = signatureOrStampFuture?.join()
+            }
+        } catch (e: Exception) {
+            logger.error("File upload failed during registration.", e)
+            throw IllegalStateException("File upload failed during registration. Please try again.", e)
+        }
+
 
         val superAdminDocumentMetadata = DocumentMetadataEntity(
             documentVerificationAndSignature = userDocumentVerificationAndSignatureEntity,
@@ -155,39 +186,13 @@ class AuthService(
             }
             throw DuplicateValueException(message)
         }
-        
+
         val response = ApiResponse<Unit>(
             status = HttpStatus.CREATED.value(),
             message = "User registered successfully",
             data = null
         )
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
-    }
-
-    private fun uploadWithTimeoutStrict(file: MultipartFile, fieldName: String): String {
-        return try {
-            val uploadTask = FutureTask(Callable { cloudinaryService.uploadFile(file) })
-            val thread = Thread(uploadTask)
-            thread.isDaemon = false
-            thread.start()
-            uploadTask.get(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        } catch (e: Exception) {
-            logger.error("Mandatory file upload failed for field '$fieldName': ${e.message}", e)
-            throw IllegalStateException("Failed to upload mandatory file '$fieldName'. Please try again.", e)
-        }
-    }
-
-    private fun uploadWithTimeoutOptional(file: MultipartFile, fieldName: String): String? {
-        return try {
-            val uploadTask = FutureTask(Callable { cloudinaryService.uploadFile(file) })
-            val thread = Thread(uploadTask)
-            thread.isDaemon = false
-            thread.start()
-            uploadTask.get(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        } catch (e: Exception) {
-            logger.warn("Optional file upload failed for field '$fieldName': ${e.message}", e)
-            null
-        }
     }
 
     fun login(request: LoginRequest): LoginResponse {
@@ -351,9 +356,9 @@ class AuthService(
 
         photo?.let { documentMetadata.photoMetadata = cloudinaryService.updateFile(documentMetadata.photoMetadata, it) }
         addressProof?.let { documentMetadata.addressProofMetadata = cloudinaryService.updateFile(documentMetadata.addressProofMetadata, it) }
-        gstCertificate?.let { documentMetadata.gstMetadata = cloudinaryService.updateFile(documentMetadata.gstMetadata!!, it) }
-        panFile?.let { documentMetadata.panCardMetadata = cloudinaryService.updateFile(documentMetadata.panCardMetadata!!, it) }
-        registrationCertificate?.let { documentMetadata.doctorRegistrationCertificateMetadata = cloudinaryService.updateFile(documentMetadata.doctorRegistrationCertificateMetadata!!, it) }
+        gstCertificate?.let { documentMetadata.gstMetadata = cloudinaryService.updateFile(documentMetadata.gstMetadata, it) }
+        panFile?.let { documentMetadata.panCardMetadata = cloudinaryService.updateFile(documentMetadata.panCardMetadata, it) }
+        registrationCertificate?.let { documentMetadata.doctorRegistrationCertificateMetadata = cloudinaryService.updateFile(documentMetadata.doctorRegistrationCertificateMetadata, it) }
         letterheadOrVisitingCard?.let { documentMetadata.letterHeadOrVisitingCardMetadata = cloudinaryService.updateFile(documentMetadata.letterHeadOrVisitingCardMetadata, it) }
         signatureOrStamp?.let { documentMetadata.signatureAndStampMetadata = cloudinaryService.updateFile(documentMetadata.signatureAndStampMetadata, it) }
 

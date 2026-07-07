@@ -16,29 +16,40 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
 
     private val logger = LoggerFactory.getLogger(CloudinaryService::class.java)
     private val MAX_COMPRESSIBLE_IMAGE_BYTES = 2 * 1024 * 1024L // 2MB
-    private val MAX_UPLOAD_BYTES = 10 * 1024 * 1024L // 10MB
+    private val MAX_UPLOAD_BYTES = 25 * 1024 * 1024L // 25MB
+    private val CHUNK_SIZE_BYTES = 6 * 1024 * 1024 // 6MB
 
     fun uploadFile(file: MultipartFile): String {
         if (file.size > MAX_UPLOAD_BYTES) {
-            throw IllegalArgumentException("File ${file.originalFilename} exceeds the 10MB upload limit.")
+            throw IllegalArgumentException("File ${file.originalFilename} exceeds the 25MB upload limit.")
         }
 
         try {
             val uploadRequest = buildUploadRequest(file.originalFilename)
-            val fileBytes = maybeCompressImage(file, uploadRequest.resourceType)
 
             val params = ObjectUtils.asMap(
                 "public_id", uploadRequest.publicId,
                 "resource_type", uploadRequest.resourceType,
                 "type", "upload",
                 "access_mode", "public",
-                "overwrite", true
+                "overwrite", true,
+                "chunk_size", CHUNK_SIZE_BYTES
             )
 
-            val uploadResult = cloudinary.uploader().upload(fileBytes, params)
+            val uploadResult: Map<*, *>
             
-            return uploadResult["secure_url"] as String
-        } catch (e: IOException) {
+            val shouldCompress = uploadRequest.resourceType == "image" && file.size > MAX_COMPRESSIBLE_IMAGE_BYTES
+            
+            if (shouldCompress) {
+                val compressedBytes = maybeCompressImage(file, uploadRequest.resourceType)
+                uploadResult = cloudinary.uploader().uploadLarge(compressedBytes, params)
+            } else {
+                // For non-images, or small images, stream directly from the input stream
+                uploadResult = cloudinary.uploader().uploadLarge(file.inputStream, params)
+            }
+            
+            return uploadResult["secure_url"] as? String ?: throw IOException("Cloudinary upload failed: secure_url not found in response.")
+        } catch (e: Exception) {
             throw RuntimeException("Could not store file ${file.originalFilename}. Please try again!", e)
         }
     }
@@ -53,8 +64,8 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
         }
     }
 
-    fun updateFile(oldUrl: String, newFile: MultipartFile): String {
-        deleteFile(oldUrl)
+    fun updateFile(oldUrl: String?, newFile: MultipartFile): String {
+        oldUrl?.let { deleteFile(it) }
         return uploadFile(newFile)
     }
 
