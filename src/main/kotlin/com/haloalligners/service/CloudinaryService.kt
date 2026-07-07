@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import java.util.UUID
 
@@ -18,6 +19,7 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
     private val MAX_COMPRESSIBLE_IMAGE_BYTES = 2 * 1024 * 1024L // 2MB
     private val MAX_UPLOAD_BYTES = 25 * 1024 * 1024L // 25MB
     private val CHUNK_SIZE_BYTES = 6 * 1024 * 1024 // 6MB
+    private val PDF_COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024L // 10MB
 
     fun uploadFile(file: MultipartFile): String {
         if (file.size > MAX_UPLOAD_BYTES) {
@@ -37,20 +39,62 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
             )
 
             val uploadResult: Map<*, *>
-            
-            val shouldCompress = uploadRequest.resourceType == "image" && file.size > MAX_COMPRESSIBLE_IMAGE_BYTES
-            
-            if (shouldCompress) {
+
+            val shouldCompressImage = uploadRequest.resourceType == "image" && file.size > MAX_COMPRESSIBLE_IMAGE_BYTES
+            val shouldCompressPdf = uploadRequest.resourceType == "raw" && file.originalFilename?.endsWith(".pdf", true) == true && file.size > PDF_COMPRESSION_THRESHOLD_BYTES
+
+            if (shouldCompressImage) {
                 val compressedBytes = maybeCompressImage(file, uploadRequest.resourceType)
                 uploadResult = cloudinary.uploader().uploadLarge(compressedBytes, params)
+            } else if (shouldCompressPdf) {
+                val compressedBytes = compressPdf(file)
+                uploadResult = cloudinary.uploader().uploadLarge(compressedBytes, params)
             } else {
-                // For non-images, or small images, stream directly from the input stream
                 uploadResult = cloudinary.uploader().uploadLarge(file.inputStream, params)
             }
             
             return uploadResult["secure_url"] as? String ?: throw IOException("Cloudinary upload failed: secure_url not found in response.")
         } catch (e: Exception) {
             throw RuntimeException("Could not store file ${file.originalFilename}. Please try again!", e)
+        }
+    }
+
+    private fun compressPdf(file: MultipartFile): ByteArray {
+        val tempInputFile = File.createTempFile("upload-input-", ".pdf")
+        val tempOutputFile = File.createTempFile("upload-output-", ".pdf")
+        try {
+            file.transferTo(tempInputFile)
+
+            try {
+                val gsClass = Class.forName("org.ghost4j.Ghostscript")
+                val gs = gsClass.getMethod("getInstance").invoke(null)
+                val args = arrayOf(
+                    "-sDEVICE=pdfwrite",
+                    "-dCompatibilityLevel=1.4",
+                    "-dPDFSETTINGS=/ebook",
+                    "-dNOPAUSE",
+                    "-dQUIET",
+                    "-dBATCH",
+                    "-sOutputFile=${tempOutputFile.absolutePath}",
+                    tempInputFile.absolutePath
+                )
+                
+                synchronized(gs) {
+                    gsClass.getMethod("initialize", Array<String>::class.java).invoke(gs, args)
+                    gsClass.getMethod("exit").invoke(gs)
+                }
+                
+                return tempOutputFile.readBytes()
+            } catch (e: UnsatisfiedLinkError) {
+                logger.warn("Ghostscript native library not available on this architecture (${System.getProperty("os.arch")}). Uploading PDF without compression: ${e.message}")
+                return file.bytes
+            } catch (e: Exception) {
+                logger.warn("PDF compression skipped: ${e.javaClass.simpleName}: ${e.message}")
+                return file.bytes
+            }
+        } finally {
+            tempInputFile.delete()
+            tempOutputFile.delete()
         }
     }
 
