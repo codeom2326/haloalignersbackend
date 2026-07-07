@@ -44,6 +44,10 @@ Use the Maven wrapper to start the Spring Boot application:
 ./mvnw spring-boot:run
 ```
 
+### Railway Deployment Note
+PDF uploads larger than 10MB are compressed using the Ghostscript CLI (`gs`).  
+Railway must have Ghostscript installed at runtime. This repository includes a `nixpacks.toml` to install it automatically.
+
 ---
 
 ## 📬 API Endpoints

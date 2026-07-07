@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.lang.InterruptedException
 import java.util.UUID
 
 @Service
@@ -64,34 +65,36 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
         val tempOutputFile = File.createTempFile("upload-output-", ".pdf")
         try {
             file.transferTo(tempInputFile)
+            val args = listOf(
+                "gs",
+                "-sDEVICE=pdfwrite",
+                "-dCompatibilityLevel=1.4",
+                "-dPDFSETTINGS=/ebook",
+                "-dNOPAUSE",
+                "-dQUIET",
+                "-dBATCH",
+                "-sOutputFile=${tempOutputFile.absolutePath}",
+                tempInputFile.absolutePath
+            )
 
-            try {
-                val gsClass = Class.forName("org.ghost4j.Ghostscript")
-                val gs = gsClass.getMethod("getInstance").invoke(null)
-                val args = arrayOf(
-                    "-sDEVICE=pdfwrite",
-                    "-dCompatibilityLevel=1.4",
-                    "-dPDFSETTINGS=/ebook",
-                    "-dNOPAUSE",
-                    "-dQUIET",
-                    "-dBATCH",
-                    "-sOutputFile=${tempOutputFile.absolutePath}",
-                    tempInputFile.absolutePath
-                )
-                
-                synchronized(gs) {
-                    gsClass.getMethod("initialize", Array<String>::class.java).invoke(gs, args)
-                    gsClass.getMethod("exit").invoke(gs)
-                }
-                
-                return tempOutputFile.readBytes()
-            } catch (e: UnsatisfiedLinkError) {
-                logger.warn("Ghostscript native library not available on this architecture (${System.getProperty("os.arch")}). Uploading PDF without compression: ${e.message}")
-                return file.bytes
-            } catch (e: Exception) {
-                logger.warn("PDF compression skipped: ${e.javaClass.simpleName}: ${e.message}")
-                return file.bytes
+            val process = ProcessBuilder(args)
+                .redirectErrorStream(true)
+                .start()
+
+            val output = process.inputStream.bufferedReader().use { it.readText() }
+            val exitCode = process.waitFor()
+            if (exitCode != 0 || !tempOutputFile.exists() || tempOutputFile.length() == 0L) {
+                throw IOException("Ghostscript compression failed (exit=$exitCode): $output")
             }
+            return tempOutputFile.readBytes()
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            throw IllegalStateException("PDF compression was interrupted.", e)
+        } catch (e: IOException) {
+            throw IllegalStateException(
+                "PDF compression failed. Ensure Ghostscript CLI ('gs') is installed and available on PATH.",
+                e
+            )
         } finally {
             tempInputFile.delete()
             tempOutputFile.delete()
