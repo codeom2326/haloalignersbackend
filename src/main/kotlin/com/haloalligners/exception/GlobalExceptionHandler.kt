@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
@@ -68,6 +69,29 @@ class GlobalExceptionHandler {
         val response = ApiResponse<Unit>(
             status = HttpStatus.BAD_REQUEST.value(),
             message = message,
+            data = null
+        )
+        return ResponseEntity(response, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException::class)
+    fun handleMaxUploadSizeExceededException(
+        ex: MaxUploadSizeExceededException,
+        request: WebRequest
+    ): ResponseEntity<ApiResponse<Unit>> {
+        val response = ApiResponse<Unit>(
+            status = HttpStatus.PAYLOAD_TOO_LARGE.value(),
+            message = "File size exceeds the configured upload limit.",
+            data = null
+        )
+        return ResponseEntity(response, HttpStatus.PAYLOAD_TOO_LARGE)
+    }
+
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgumentException(ex: IllegalArgumentException, request: WebRequest): ResponseEntity<ApiResponse<Unit>> {
+        val response = ApiResponse<Unit>(
+            status = HttpStatus.BAD_REQUEST.value(),
+            message = ex.message ?: "Invalid request data.",
             data = null
         )
         return ResponseEntity(response, HttpStatus.BAD_REQUEST)

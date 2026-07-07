@@ -27,3 +27,6 @@ CLOUDINARY_URL: "cloudinary://415747494541487:dnnCEo59MiZ_h92r6dvRFYt2ssM@dmtqgl
 jwt:
   secret: ${JWT_SECRET:mySecretKeyForHaloAlignersApplicationPleaseChangeInProduction12345}
   expiration: ${JWT_EXPIRATION:86400000}
+
+cloudinary:
+  timeout-ms: 60000

@@ -12,6 +12,7 @@ import com.haloalligners.repository.ClinicContactsAndLabPartnersRepository
 import com.haloalligners.repository.PractitionerDetailsRepository
 import com.haloalligners.repository.RejectedUserRepository
 import com.haloalligners.security.JwtService
+import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.dao.DataIntegrityViolationException
@@ -27,6 +28,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
+import java.util.concurrent.Callable
+import java.util.concurrent.FutureTask
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 @Service
@@ -40,6 +44,8 @@ class AuthService(
     private val jwtService: JwtService,
     private val cloudinaryService: CloudinaryService
 ) {
+    private val logger = LoggerFactory.getLogger(AuthService::class.java)
+    private val UPLOAD_TIMEOUT_SECONDS = 30L
 
     @Transactional
     @CacheEvict(value = ["users"], allEntries = true)
@@ -107,18 +113,17 @@ class AuthService(
             letterHeadOrVisitingCard = request.letterHeadOrVisitingCard
         )
 
-        fun uploadFileIfPresent(file: MultipartFile?): String? {
-            return file?.takeIf { !it.isEmpty }?.let { cloudinaryService.uploadFile(it) }
-        }
-
-        val photoUrl = cloudinaryService.uploadFile(photo) // Main photo is mandatory
-        val addressProofUrl = uploadFileIfPresent(addressProof)
-        val gstCertificateUrl = uploadFileIfPresent(gstCertificate)
-        val panUrl = uploadFileIfPresent(panFile)
-        val registrationUrl = uploadFileIfPresent(registrationCertificate)
-        val letterheadOrVisitingCardUrl = uploadFileIfPresent(letterheadOrVisitingCard)
-        val signatureOrStampUrl = uploadFileIfPresent(signatureOrStamp)
-
+        // Upload files with timeout protection
+        // Photo is mandatory - fail registration if it doesn't upload successfully
+        val photoUrl = uploadWithTimeoutStrict(photo, "photo")
+        
+        // Optional files - gracefully degrade to "N/A" if upload fails
+        val addressProofUrl = if (addressProof?.isEmpty == false) uploadWithTimeoutOptional(addressProof, "addressProof") else null
+        val gstCertificateUrl = if (gstCertificate?.isEmpty == false) uploadWithTimeoutOptional(gstCertificate, "gstCertificate") else null
+        val panUrl = if (panFile?.isEmpty == false) uploadWithTimeoutOptional(panFile, "panFile") else null
+        val registrationUrl = if (registrationCertificate?.isEmpty == false) uploadWithTimeoutOptional(registrationCertificate, "registrationCertificate") else null
+        val letterheadOrVisitingCardUrl = if (letterheadOrVisitingCard?.isEmpty == false) uploadWithTimeoutOptional(letterheadOrVisitingCard, "letterheadOrVisitingCard") else null
+        val signatureOrStampUrl = if (signatureOrStamp?.isEmpty == false) uploadWithTimeoutOptional(signatureOrStamp, "signatureOrStamp") else null
 
         val superAdminDocumentMetadata = DocumentMetadataEntity(
             documentVerificationAndSignature = userDocumentVerificationAndSignatureEntity,
@@ -157,6 +162,32 @@ class AuthService(
             data = null
         )
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
+    }
+
+    private fun uploadWithTimeoutStrict(file: MultipartFile, fieldName: String): String {
+        return try {
+            val uploadTask = FutureTask(Callable { cloudinaryService.uploadFile(file) })
+            val thread = Thread(uploadTask)
+            thread.isDaemon = false
+            thread.start()
+            uploadTask.get(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        } catch (e: Exception) {
+            logger.error("Mandatory file upload failed for field '$fieldName': ${e.message}", e)
+            throw IllegalStateException("Failed to upload mandatory file '$fieldName'. Please try again.", e)
+        }
+    }
+
+    private fun uploadWithTimeoutOptional(file: MultipartFile, fieldName: String): String? {
+        return try {
+            val uploadTask = FutureTask(Callable { cloudinaryService.uploadFile(file) })
+            val thread = Thread(uploadTask)
+            thread.isDaemon = false
+            thread.start()
+            uploadTask.get(UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        } catch (e: Exception) {
+            logger.warn("Optional file upload failed for field '$fieldName': ${e.message}", e)
+            null
+        }
     }
 
     fun login(request: LoginRequest): LoginResponse {
