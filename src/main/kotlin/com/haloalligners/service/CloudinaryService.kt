@@ -3,14 +3,17 @@ package com.haloalligners.service
 import com.cloudinary.Cloudinary
 import com.cloudinary.utils.ObjectUtils
 import net.coobird.thumbnailator.Thumbnails
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.IOException
-import java.lang.InterruptedException
 import java.util.UUID
 
 @Service
@@ -21,6 +24,8 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
     private val MAX_UPLOAD_BYTES = 25 * 1024 * 1024L // 25MB
     private val CHUNK_SIZE_BYTES = 6 * 1024 * 1024 // 6MB
     private val PDF_COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024L // 10MB
+    private val PDF_MAX_IMAGE_EDGE = 1800
+    private val PDF_IMAGE_QUALITY = 0.65f
 
     fun uploadFile(file: MultipartFile): String {
         if (file.size > MAX_UPLOAD_BYTES) {
@@ -61,43 +66,67 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
     }
 
     private fun compressPdf(file: MultipartFile): ByteArray {
-        val tempInputFile = File.createTempFile("upload-input-", ".pdf")
-        val tempOutputFile = File.createTempFile("upload-output-", ".pdf")
         try {
-            file.transferTo(tempInputFile)
-            val args = listOf(
-                "gs",
-                "-sDEVICE=pdfwrite",
-                "-dCompatibilityLevel=1.4",
-                "-dPDFSETTINGS=/ebook",
-                "-dNOPAUSE",
-                "-dQUIET",
-                "-dBATCH",
-                "-sOutputFile=${tempOutputFile.absolutePath}",
-                tempInputFile.absolutePath
-            )
+            Loader.loadPDF(file.bytes).use { document ->
+                recompressPdfImages(document)
 
-            val process = ProcessBuilder(args)
-                .redirectErrorStream(true)
-                .start()
-
-            val output = process.inputStream.bufferedReader().use { it.readText() }
-            val exitCode = process.waitFor()
-            if (exitCode != 0 || !tempOutputFile.exists() || tempOutputFile.length() == 0L) {
-                throw IOException("Ghostscript compression failed (exit=$exitCode): $output")
+                val outputStream = ByteArrayOutputStream()
+                document.save(outputStream)
+                val compressed = outputStream.toByteArray()
+                if (compressed.isEmpty()) {
+                    throw IOException("PDF compression produced an empty output.")
+                }
+                return compressed
             }
-            return tempOutputFile.readBytes()
-        } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt()
-            throw IllegalStateException("PDF compression was interrupted.", e)
         } catch (e: IOException) {
             throw IllegalStateException(
-                "PDF compression failed. Ensure Ghostscript CLI ('gs') is installed and available on PATH.",
+                "PDF compression failed.",
                 e
             )
-        } finally {
-            tempInputFile.delete()
-            tempOutputFile.delete()
+        }
+    }
+
+    private fun recompressPdfImages(document: PDDocument) {
+        for (page in document.pages) {
+            val resources = page.resources ?: continue
+            for (name in resources.xObjectNames) {
+                val xObject = resources.getXObject(name)
+                if (xObject !is PDImageXObject) {
+                    continue
+                }
+
+                val sourceImage = xObject.image ?: continue
+                if (sourceImage.colorModel?.hasAlpha() == true) {
+                    continue
+                }
+
+                val resized = resizeIfNeeded(sourceImage, PDF_MAX_IMAGE_EDGE)
+                val replacement = JPEGFactory.createFromImage(document, resized, PDF_IMAGE_QUALITY)
+                resources.put(name, replacement)
+            }
+        }
+    }
+
+    private fun resizeIfNeeded(image: BufferedImage, maxEdge: Int): BufferedImage {
+        val width = image.width
+        val height = image.height
+        if (width <= maxEdge && height <= maxEdge) {
+            return image
+        }
+
+        val scale = minOf(maxEdge.toDouble() / width, maxEdge.toDouble() / height)
+        val targetWidth = (width * scale).toInt().coerceAtLeast(1)
+        val targetHeight = (height * scale).toInt().coerceAtLeast(1)
+
+        val outputStream = ByteArrayOutputStream()
+        Thumbnails.of(image)
+            .size(targetWidth, targetHeight)
+            .outputFormat("jpg")
+            .outputQuality(PDF_IMAGE_QUALITY.toDouble())
+            .toOutputStream(outputStream)
+
+        return ByteArrayInputStream(outputStream.toByteArray()).use {
+            javax.imageio.ImageIO.read(it)
         }
     }
 
