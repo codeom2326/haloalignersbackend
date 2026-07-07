@@ -301,6 +301,74 @@ class AuthService(
 
     @Transactional
     @CacheEvict(value = ["users"], allEntries = true)
+    fun updateUser(
+        id: Long,
+        request: AuthRequest,
+        photo: MultipartFile?,
+        addressProof: MultipartFile?,
+        gstCertificate: MultipartFile?,
+        panFile: MultipartFile?,
+        registrationCertificate: MultipartFile?,
+        letterheadOrVisitingCard: MultipartFile?,
+        signatureOrStamp: MultipartFile?
+    ): ResponseEntity<ApiResponse<Unit>> {
+        val user = clinicContactsAndLabPartnersRepository.findById(id)
+            .orElseThrow { UsernameNotFoundException("User with ID $id not found") }
+
+        user.username = request.username
+        user.password = passwordEncoder.encode(request.password)
+        user.landLine = request.landLine
+        user.mobile = request.mobile
+        user.email = request.email
+        user.preferredPartnerCrown = request.preferredPartnerCrown
+        user.preferredPartnerImplants = request.preferredPartnerImplants
+
+        val practitionerDetails = user.practitionerDetails!!
+        practitionerDetails.fullName = request.fullName
+        practitionerDetails.doctorRegistrationNumber = request.doctorRegistrationNumber
+        practitionerDetails.pan = request.pan
+        practitionerDetails.practitionerCategory = request.practitionerCategory
+        practitionerDetails.businessArea = request.businessArea
+
+        val clinicAddressDetails = user.clinicAddressDetails!!
+        clinicAddressDetails.clinicName = request.clinicName
+        clinicAddressDetails.addressLine1 = request.addressLine1
+        clinicAddressDetails.addressLine2 = request.addressLine2
+        clinicAddressDetails.addressLine3 = request.addressLine3
+        clinicAddressDetails.addressLine4 = request.addressLine4
+        clinicAddressDetails.addressLine5 = request.addressLine5
+        clinicAddressDetails.isDispatchAddressSameAsInvoice = request.isDispatchAddressSameAsInvoice
+
+        val documentVerificationAndSignature = user.documentVerificationAndSignature!!
+        documentVerificationAndSignature.addressProofType = request.addressProofType
+        documentVerificationAndSignature.isClinicGstRegistered = request.isClinicGstRegistered
+        documentVerificationAndSignature.gstNumber = request.gstNumber
+        documentVerificationAndSignature.panCard = request.panCard
+        documentVerificationAndSignature.doctorRegistrationCertificate = request.doctorRegistrationCertificate
+        documentVerificationAndSignature.letterHeadOrVisitingCard = request.letterHeadOrVisitingCard
+
+        val documentMetadata = documentVerificationAndSignature.documentMetadata!!
+
+        photo?.let { documentMetadata.photoMetadata = cloudinaryService.updateFile(documentMetadata.photoMetadata, it) }
+        addressProof?.let { documentMetadata.addressProofMetadata = cloudinaryService.updateFile(documentMetadata.addressProofMetadata, it) }
+        gstCertificate?.let { documentMetadata.gstMetadata = cloudinaryService.updateFile(documentMetadata.gstMetadata!!, it) }
+        panFile?.let { documentMetadata.panCardMetadata = cloudinaryService.updateFile(documentMetadata.panCardMetadata!!, it) }
+        registrationCertificate?.let { documentMetadata.doctorRegistrationCertificateMetadata = cloudinaryService.updateFile(documentMetadata.doctorRegistrationCertificateMetadata!!, it) }
+        letterheadOrVisitingCard?.let { documentMetadata.letterHeadOrVisitingCardMetadata = cloudinaryService.updateFile(documentMetadata.letterHeadOrVisitingCardMetadata, it) }
+        signatureOrStamp?.let { documentMetadata.signatureAndStampMetadata = cloudinaryService.updateFile(documentMetadata.signatureAndStampMetadata, it) }
+
+        clinicContactsAndLabPartnersRepository.save(user)
+
+        val response = ApiResponse<Unit>(
+            status = HttpStatus.OK.value(),
+            message = "User with ID $id updated successfully.",
+            data = null
+        )
+        return ResponseEntity.ok(response)
+    }
+
+    @Transactional
+    @CacheEvict(value = ["users"], allEntries = true)
     fun updateUserStatus(id: Long, status: String, reason: String?): ResponseEntity<ApiResponse<Unit>> {
         val user = clinicContactsAndLabPartnersRepository.findById(id)
             .orElseThrow { UsernameNotFoundException("User with ID $id not found") }
@@ -338,10 +406,22 @@ class AuthService(
     }
 
     @CacheEvict(value = ["users"], allEntries = true)
+    @Transactional
     fun deleteUser(id: Long): ResponseEntity<ApiResponse<Unit>> {
-        if (!clinicContactsAndLabPartnersRepository.existsById(id)) {
-            throw UsernameNotFoundException("User with ID $id not found.")
+        val user = clinicContactsAndLabPartnersRepository.findById(id)
+            .orElseThrow { UsernameNotFoundException("User with ID $id not found") }
+
+        val documentMetadata = user.documentVerificationAndSignature?.documentMetadata
+        documentMetadata?.let {
+            cloudinaryService.deleteFile(it.photoMetadata)
+            cloudinaryService.deleteFile(it.addressProofMetadata)
+            it.gstMetadata?.let { gst -> cloudinaryService.deleteFile(gst) }
+            it.panCardMetadata?.let { pan -> cloudinaryService.deleteFile(pan) }
+            it.doctorRegistrationCertificateMetadata?.let { cert -> cloudinaryService.deleteFile(cert) }
+            cloudinaryService.deleteFile(it.letterHeadOrVisitingCardMetadata)
+            cloudinaryService.deleteFile(it.signatureAndStampMetadata)
         }
+
         clinicContactsAndLabPartnersRepository.deleteById(id)
         val response = ApiResponse<Unit>(
             status = HttpStatus.OK.value(),

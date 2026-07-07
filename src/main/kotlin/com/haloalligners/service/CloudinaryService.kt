@@ -3,6 +3,7 @@ package com.haloalligners.service
 import com.cloudinary.Cloudinary
 import com.cloudinary.utils.ObjectUtils
 import net.coobird.thumbnailator.Thumbnails
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
@@ -13,6 +14,7 @@ import java.util.UUID
 @Service
 class CloudinaryService(private val cloudinary: Cloudinary) {
 
+    private val logger = LoggerFactory.getLogger(CloudinaryService::class.java)
     private val MAX_COMPRESSIBLE_IMAGE_BYTES = 2 * 1024 * 1024L // 2MB
     private val MAX_UPLOAD_BYTES = 10 * 1024 * 1024L // 10MB
 
@@ -38,6 +40,34 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
             return uploadResult["secure_url"] as String
         } catch (e: IOException) {
             throw RuntimeException("Could not store file ${file.originalFilename}. Please try again!", e)
+        }
+    }
+
+    fun deleteFile(url: String) {
+        try {
+            val publicId = extractPublicIdFromUrl(url)
+            val resourceType = getResourceTypeFromUrl(url)
+            cloudinary.uploader().destroy(publicId, ObjectUtils.asMap("resource_type", resourceType))
+        } catch (e: Exception) {
+            logger.error("Failed to delete file from Cloudinary with URL: $url", e)
+        }
+    }
+
+    fun updateFile(oldUrl: String, newFile: MultipartFile): String {
+        deleteFile(oldUrl)
+        return uploadFile(newFile)
+    }
+
+    private fun extractPublicIdFromUrl(url: String): String {
+        return url.substringAfterLast('/').substringBeforeLast('.')
+    }
+
+    private fun getResourceTypeFromUrl(url: String): String {
+        val extension = url.substringAfterLast('.').lowercase()
+        return when (extension) {
+            "pdf" -> "raw"
+            "jpg", "jpeg", "png", "gif" -> "image"
+            else -> "auto"
         }
     }
 

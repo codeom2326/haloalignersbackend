@@ -8,31 +8,31 @@ import jakarta.persistence.*
 class ClinicAddressDetailsEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
 
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "clinic_contacts_and_lab_partners_id", referencedColumnName = "id")
     @JsonBackReference
-    val clinicContactsAndLabPartners: ClinicContactsAndLabPartnersEntity,
+    var clinicContactsAndLabPartners: ClinicContactsAndLabPartnersEntity,
 
     @Column(nullable = false)
-    val clinicName: String = "",
+    var clinicName: String = "",
 
     @Column(nullable = false)
-    val addressLine1: String = "",
+    var addressLine1: String = "",
 
     @Column
-    val addressLine2: String? = null,
+    var addressLine2: String? = null,
 
     @Column
-    val addressLine3: String? = null,
+    var addressLine3: String? = null,
 
     @Column
-    val addressLine4: String? = null,
+    var addressLine4: String? = null,
 
     @Column(nullable = false)
-    val addressLine5: String = "",
+    var addressLine5: String = "",
 
     @Column(nullable = false)
-    val isDispatchAddressSameAsInvoice: Boolean = false
+    var isDispatchAddressSameAsInvoice: Boolean = false
 )

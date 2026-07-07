@@ -116,9 +116,36 @@ class AuthController(
         return ResponseEntity(authService.getUser(id), HttpStatus.OK)
     }
 
-    @PutMapping("/users")
+    @PutMapping("/users/{id}")
     @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     fun updateUser(
+        @PathVariable id: Long,
+        @RequestPart("user") userJson: String,
+        @RequestPart("photo", required = false) photo: MultipartFile?,
+        @RequestPart("addressProof", required = false) addressProof: MultipartFile?,
+        @RequestPart("gstCertificate", required = false) gstCertificate: MultipartFile?,
+        @RequestPart("pan", required = false) pan: MultipartFile?,
+        @RequestPart("registrationCertificate", required = false) registrationCertificate: MultipartFile?,
+        @RequestPart("letterheadOrVisitingCard", required = false) letterheadOrVisitingCard: MultipartFile?,
+        @RequestPart("signatureOrStamp", required = false) signatureOrStamp: MultipartFile?
+    ): ResponseEntity<ApiResponse<Unit>> {
+        val request = objectMapper.readValue(userJson, AuthRequest::class.java)
+        return authService.updateUser(
+            id,
+            request,
+            photo,
+            addressProof,
+            gstCertificate,
+            pan,
+            registrationCertificate,
+            letterheadOrVisitingCard,
+            signatureOrStamp
+        )
+    }
+
+    @PutMapping("/users")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
+    fun updateUserStatus(
         @RequestParam id: Long, 
         @RequestParam status: String,
         @RequestParam(required = false) reason: String?

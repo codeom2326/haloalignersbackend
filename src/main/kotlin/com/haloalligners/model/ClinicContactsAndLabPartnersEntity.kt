@@ -9,37 +9,37 @@ import java.time.LocalDate
 class ClinicContactsAndLabPartnersEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
 
     @Column(unique = true, nullable = false)
-    val username: String, // Renamed from userName and made unique/not nullable
+    var username: String, // Renamed from userName and made unique/not nullable
 
     @Column(nullable = false)
-    val password: String?,
+    var password: String?,
 
     @Column(nullable = false)
-    val role: String = "USER", // Added role field
+    var role: String = "USER", // Added role field
 
     @Column(unique = true, nullable = false)
-    val email: String,
+    var email: String,
 
     @Column
-    val landLine: String?,
+    var landLine: String?,
 
     @Column(nullable = false)
-    val mobile: String,
+    var mobile: String,
 
     @Column
-    val preferredPartnerCrown: String?,
+    var preferredPartnerCrown: String?,
 
     @Column
-    val preferredPartnerImplants: String?,
+    var preferredPartnerImplants: String?,
 
     @Column
     var registrationStatus: String,
 
     @Column(nullable = false)
-    val registrationDate: LocalDate = LocalDate.now(),
+    var registrationDate: LocalDate = LocalDate.now(),
 
     @OneToOne(mappedBy = "clinicContactsAndLabPartners", cascade = [CascadeType.ALL], orphanRemoval = true)
     @JsonManagedReference

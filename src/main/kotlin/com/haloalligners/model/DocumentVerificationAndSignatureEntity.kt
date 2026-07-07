@@ -9,33 +9,33 @@ import jakarta.persistence.*
 class DocumentVerificationAndSignatureEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
 
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "clinic_contacts_and_lab_partners_id", referencedColumnName = "id")
     @JsonBackReference
-    val clinicContactsAndLabPartners: ClinicContactsAndLabPartnersEntity,
+    var clinicContactsAndLabPartners: ClinicContactsAndLabPartnersEntity,
 
     @Column(nullable = false)
-    val addressProofType: String = "",
+    var addressProofType: String = "",
 
     @Column(nullable = false)
-    val addressProofCopy: String = "",
+    var addressProofCopy: String = "",
 
     @Column(nullable = false)
-    val isClinicGstRegistered: Boolean = false,
+    var isClinicGstRegistered: Boolean = false,
 
     @Column
-    val gstNumber: String? = null,
+    var gstNumber: String? = null,
 
     @Column
-    val panCard: Boolean? = false,
+    var panCard: Boolean? = false,
 
     @Column
-    val doctorRegistrationCertificate: Boolean? = false,
+    var doctorRegistrationCertificate: Boolean? = false,
 
     @Column
-    val letterHeadOrVisitingCard: Boolean? = false,
+    var letterHeadOrVisitingCard: Boolean? = false,
 
     @OneToOne(mappedBy = "documentVerificationAndSignature", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference

@@ -8,31 +8,31 @@ import jakarta.persistence.*
 class DocumentMetadataEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
 
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "document_verification_id", referencedColumnName = "id")
     @JsonBackReference
-    val documentVerificationAndSignature: DocumentVerificationAndSignatureEntity,
+    var documentVerificationAndSignature: DocumentVerificationAndSignatureEntity,
 
     @Column(nullable = false)
-    val addressProofMetadata: String,
+    var addressProofMetadata: String,
 
     @Column
-    val gstMetadata: String?,
+    var gstMetadata: String?,
 
     @Column
-    val panCardMetadata: String?,
+    var panCardMetadata: String?,
 
     @Column
-    val doctorRegistrationCertificateMetadata: String?,
+    var doctorRegistrationCertificateMetadata: String?,
 
     @Column
-    val letterHeadOrVisitingCardMetadata: String,
+    var letterHeadOrVisitingCardMetadata: String,
 
     @Column(nullable = false)
-    val signatureAndStampMetadata: String,
+    var signatureAndStampMetadata: String,
 
     @Column(nullable = false)
-    val photoMetadata: String
+    var photoMetadata: String
 )
