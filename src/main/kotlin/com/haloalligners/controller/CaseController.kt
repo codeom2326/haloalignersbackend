@@ -80,6 +80,17 @@ class CaseController(
         }
     }
 
+    @GetMapping("/my-cases")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
+    fun getAllCasesByUser(@AuthenticationPrincipal userDetails: UserDetails): ResponseEntity<List<CaseResponse>> {
+        try {
+            val cases = caseService.getAllCasesForUser(userDetails.username).map { toCaseResponse(it) }
+            return ResponseEntity.ok(cases)
+        } catch (e: Exception) {
+            throw RuntimeException(AppConstants.RUNTIME_EXCEPTION_MESSAGE, e)
+        }
+    }
+
     @GetMapping("/byStatus")
     @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     fun getCasesByStatus(@RequestParam status: String): ResponseEntity<List<CaseResponse>> {

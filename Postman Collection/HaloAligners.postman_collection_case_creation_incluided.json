@@ -8,6 +8,25 @@
   },
   "item": [
     {
+      "name": "Get My Cases",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/my-cases",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "my-cases"
+          ]
+        }
+      },
+      "response": []
+    }   ,
+    {
       "name": "Register Clinic (with Photo)",
       "request": {
         "method": "POST",
@@ -83,7 +102,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/auth/users?requestStatus=Approved",
+          "raw": "{{baseUrl}}/api/auth/users?requestStatus=APPROVED",
           "host": [
             "{{baseUrl}}"
           ],
@@ -200,7 +219,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"username\": \"superadmin\",\r\n    \"password\": \"admin123\"\r\n}",
+          "raw": "{\r\n    \"username\": \"superadmin\",\r\n    \"password\": \"password\"\r\n}",
           "options": {
             "raw": {
               "language": "json"

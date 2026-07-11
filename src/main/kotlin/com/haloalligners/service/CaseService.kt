@@ -82,6 +82,12 @@ class CaseService(
 
     }
 
+    fun getAllCasesForUser(username: String): List<CaseEntity> {
+        val user = clinicContactsAndLabPartnersRepository.findByUsername(username)
+            .orElseThrow { UsernameNotFoundException("User not found: $username") }
+        return caseRepository.findByUserId(user.id!!)
+    }
+
     fun getCasesByStatus(status: String): List<Any> {
         return if(AppConstants.CASE_REJECTED.equals(status, ignoreCase = true)) {
             rejectedCaseRepository.findAll()
