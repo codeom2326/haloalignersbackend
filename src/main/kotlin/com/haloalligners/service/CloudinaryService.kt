@@ -47,7 +47,7 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
             val uploadResult: Map<*, *>
 
             val shouldCompressImage = uploadRequest.resourceType == "image" && file.size > MAX_COMPRESSIBLE_IMAGE_BYTES
-            val shouldCompressPdf = uploadRequest.resourceType == "raw" && file.originalFilename?.endsWith(".pdf", true) == true && file.size > PDF_COMPRESSION_THRESHOLD_BYTES
+            val shouldCompressPdf = uploadRequest.resourceType == "raw" && file.originalFilename?.endsWith(".pdf", true) == true && file.size >= PDF_COMPRESSION_THRESHOLD_BYTES
 
             if (shouldCompressImage) {
                 val compressedBytes = maybeCompressImage(file, uploadRequest.resourceType)
