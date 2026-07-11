@@ -17,49 +17,49 @@ class CaseImageMetadataEntity (
     @Column
     val caseId: Long,
 
-    @Column
-    val xrayImage1Url: String,
+    @Column(nullable = true)
+    var xrayImage1Url: String?,
 
-    @Column
-    val xrayImage2Url: String,
+    @Column(nullable = true)
+    var xrayImage2Url: String?,
 
-    @Column
-    val xrayImage3Url: String,
+    @Column(nullable = true)
+    var xrayImage3Url: String?,
 
-    @Column
-    val archImage1Url: String,
+    @Column(nullable = true)
+    var archImage1Url: String?,
 
-    @Column
-    val archImage2Url: String,
+    @Column(nullable = true)
+    var archImage2Url: String?,
 
-    @Column
-    val archImage3Url: String,
+    @Column(nullable = true)
+    var archImage3Url: String?,
 
-    @Column
-    val archImage4Url: String,
+    @Column(nullable = true)
+    var archImage4Url: String?,
 
-    @Column
-    val archImage5Url: String,
+    @Column(nullable = true)
+    var archImage5Url: String?,
 
-    @Column
-    val archImage6Url: String,
+    @Column(nullable = true)
+    var archImage6Url: String?,
 
-    @Column
-    val archImage7Url: String,
+    @Column(nullable = true)
+    var archImage7Url: String?,
 
-    @Column
-    val archImage8Url: String,
+    @Column(nullable = true)
+    var archImage8Url: String?,
 
-    @Column
-    val profileImage1Url: String,
+    @Column(nullable = true)
+    var profileImage1Url: String?,
 
-    @Column
-    val profileImage2Url: String,
+    @Column(nullable = true)
+    var profileImage2Url: String?,
 
-    @Column
-    val profileImage3Url: String,
+    @Column(nullable = true)
+    var profileImage3Url: String?,
 
-    @Column
-    val profileImage4Url: String
+    @Column(nullable = true)
+    var profileImage4Url: String?
 
 )
