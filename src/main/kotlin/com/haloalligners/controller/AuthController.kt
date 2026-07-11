@@ -110,6 +110,12 @@ class AuthController(
         return ResponseEntity(authService.getUsers(requestStatus), HttpStatus.OK)
     }
 
+    @GetMapping("/users/by-case-status")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
+    fun getUsersByCaseStatus(@RequestParam status: String): ResponseEntity<List<GetUsersResponse>> {
+        return ResponseEntity(authService.getUsersByCaseStatus(status), HttpStatus.OK)
+    }
+
     @GetMapping("/user")
     @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     fun getUserById(@RequestParam id: Long): ResponseEntity<GetSingleUserResponse> {

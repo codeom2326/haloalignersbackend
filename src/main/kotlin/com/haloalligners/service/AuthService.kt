@@ -260,6 +260,23 @@ class AuthService(
         }
     }
 
+    fun getUsersByCaseStatus(status: String): List<GetUsersResponse> {
+        return clinicContactsAndLabPartnersRepository.findByCasesStatus(status).map {
+            GetUsersResponse(
+                id = it.id!!,
+                username = it.username,
+                role = it.role,
+                email = it.email,
+                landLine = it.landLine,
+                mobile = it.mobile,
+                preferredPartnerCrown = it.preferredPartnerCrown,
+                preferredPartnerImplants = it.preferredPartnerImplants,
+                registrationStatus = it.registrationStatus,
+                registrationDate = it.registrationDate
+            )
+        }
+    }
+
     fun getUser(id: Long): GetSingleUserResponse {
         val user = clinicContactsAndLabPartnersRepository.findById(id)
             .orElseThrow { UsernameNotFoundException("User not found") }

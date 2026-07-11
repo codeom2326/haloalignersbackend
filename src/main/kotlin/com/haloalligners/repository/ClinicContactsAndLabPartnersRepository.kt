@@ -2,6 +2,7 @@ package com.haloalligners.repository
 
 import com.haloalligners.model.ClinicContactsAndLabPartnersEntity
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.util.Optional
 
@@ -9,4 +10,7 @@ import java.util.Optional
 interface ClinicContactsAndLabPartnersRepository : JpaRepository<ClinicContactsAndLabPartnersEntity, Long> {
     fun findByUsername(username: String): Optional<ClinicContactsAndLabPartnersEntity>
     fun findByEmail(email: String): Optional<ClinicContactsAndLabPartnersEntity>
+    
+    @Query("SELECT DISTINCT c.user FROM CaseEntity c WHERE c.status = :status")
+    fun findByCasesStatus(status: String): List<ClinicContactsAndLabPartnersEntity>
 }
