@@ -6,15 +6,14 @@ import jakarta.persistence.*
 import java.time.Instant
 
 @Entity
-@Table(name = "cases")
-class CaseEntity(
+@Table(name = "rejected_cases")
+class RejectedCaseEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: ClinicContactsAndLabPartnersEntity,
+    @Column(nullable = false)
+    val username: String,
 
     @Column(nullable = false)
     var caseName: String,
@@ -32,12 +31,8 @@ class CaseEntity(
     val existingDisease: String?,
 
     @Column(nullable = false)
-    var status: String = AppConstants.CASE_CREATED, // Initial status
+    var status: String = AppConstants.CASE_REJECTED, // Initial status
 
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now(),
-
-    @OneToMany(mappedBy = "case", cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JsonManagedReference
-    val treatmentStages: MutableList<TreatmentStageEntity> = mutableListOf()
+    val rejectedAt: Instant = Instant.now()
 )
