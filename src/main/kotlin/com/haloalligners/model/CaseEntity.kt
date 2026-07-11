@@ -37,7 +37,15 @@ class CaseEntity(
     @Column(nullable = false)
     val createdAt: Instant = Instant.now(),
 
-    @OneToMany(mappedBy = "case", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToOne(mappedBy = "case", cascade = [CascadeType.ALL], orphanRemoval = true)
     @JsonManagedReference
-    val treatmentStages: MutableList<TreatmentStageEntity> = mutableListOf()
+    var xrayImages: XRayImagesEntity? = null,
+
+    @OneToOne(mappedBy = "case", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference
+    var profileImages: ProfileImagesEntity? = null,
+
+    @OneToOne(mappedBy = "case", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference
+    var archImages: ArchImagesEntity? = null
 )

@@ -2,13 +2,8 @@ package com.haloalligners.service
 
 import com.haloalligners.constant.AppConstants
 import com.haloalligners.controller.CreateCaseRequest
-import com.haloalligners.model.CaseEntity
-import com.haloalligners.model.CaseImageMetadataEntity
-import com.haloalligners.model.RejectedCaseEntity
-import com.haloalligners.repository.CaseImageMetadataRepository
-import com.haloalligners.repository.CaseRepository
-import com.haloalligners.repository.ClinicContactsAndLabPartnersRepository
-import com.haloalligners.repository.RejectedCaseRepository
+import com.haloalligners.model.*
+import com.haloalligners.repository.*
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
@@ -20,9 +15,11 @@ class CaseService(
     private val rejectedCaseRepository: RejectedCaseRepository,
     private val clinicContactsAndLabPartnersRepository: ClinicContactsAndLabPartnersRepository,
     private val cloudinaryService: CloudinaryService,
-    private val caseImageMetadataRepository: CaseImageMetadataRepository
+    private val xRayImagesRepository: XRayImagesRepository,
+    private val profileImagesRepository: ProfileImagesRepository,
+    private val archImagesRepository: ArchImagesRepository
 ) {
-    fun createCase(username: String, request: CreateCaseRequest, listOfImages: List<MultipartFile?>): CaseEntity {
+    fun createCase(username: String, request: CreateCaseRequest): CaseEntity {
         val user = clinicContactsAndLabPartnersRepository.findByUsername(username)
             .orElseThrow { UsernameNotFoundException("User not found: $username") }
 
@@ -35,91 +32,93 @@ class CaseService(
             existingDisease = request.existingDisease,
             status = "DRAFT"
         )
-        val savedCase = caseRepository.save(newCase)
-
-        val imageUrls = listOfImages.map { it?.let { cloudinaryService.uploadFile(it) } }
-
-        val caseImagesMetadata = CaseImageMetadataEntity(
-            caseId = savedCase.id!!,
-            xrayImage1Url = imageUrls[0],
-            xrayImage2Url = imageUrls[1],
-            xrayImage3Url = imageUrls[2],
-            archImage1Url = imageUrls[3],
-            archImage2Url = imageUrls[4],
-            archImage3Url = imageUrls[5],
-            archImage4Url = imageUrls[6],
-            archImage5Url = imageUrls[7],
-            archImage6Url = imageUrls[8],
-            archImage7Url = imageUrls[9],
-            archImage8Url = imageUrls[10],
-            profileImage1Url = imageUrls[11],
-            profileImage2Url = imageUrls[12],
-            profileImage3Url = imageUrls[13],
-            profileImage4Url = imageUrls[14]
-        )
-        caseImageMetadataRepository.save(caseImagesMetadata)
-        
-        if (imageUrls.all { it != null }) {
-            savedCase.status = "Before Start"
-            caseRepository.save(savedCase)
-        }
-        
-        return savedCase
+        return caseRepository.save(newCase)
     }
 
-    fun updateCase(caseId: Long, username: String, listOfImages: List<MultipartFile?>): CaseEntity {
-        val caseToUpdate = caseRepository.findById(caseId)
+    fun uploadXrayImages(caseId: Long, username: String, images: List<MultipartFile?>) {
+        val caseEntity = caseRepository.findById(caseId)
             .orElseThrow { EntityNotFoundException("Case with ID $caseId not found.") }
-
-        val caseImagesMetadata = caseImageMetadataRepository.findByCaseId(caseId)
-            .orElseThrow { EntityNotFoundException("Case image metadata not found for case ID $caseId") }
-
-        val existingImageUrls = mutableListOf(
-            caseImagesMetadata.xrayImage1Url,
-            caseImagesMetadata.xrayImage2Url,
-            caseImagesMetadata.xrayImage3Url,
-            caseImagesMetadata.archImage1Url,
-            caseImagesMetadata.archImage2Url,
-            caseImagesMetadata.archImage3Url,
-            caseImagesMetadata.archImage4Url,
-            caseImagesMetadata.archImage5Url,
-            caseImagesMetadata.archImage6Url,
-            caseImagesMetadata.archImage7Url,
-            caseImagesMetadata.archImage8Url,
-            caseImagesMetadata.profileImage1Url,
-            caseImagesMetadata.profileImage2Url,
-            caseImagesMetadata.profileImage3Url,
-            caseImagesMetadata.profileImage4Url
-        )
-
-        val updatedImageUrls = listOfImages.mapIndexed { index, file ->
-            file?.let { cloudinaryService.uploadFile(it) } ?: existingImageUrls[index]
-        }
-
-        caseImagesMetadata.xrayImage1Url = updatedImageUrls[0]
-        caseImagesMetadata.xrayImage2Url = updatedImageUrls[1]
-        caseImagesMetadata.xrayImage3Url = updatedImageUrls[2]
-        caseImagesMetadata.archImage1Url = updatedImageUrls[3]
-        caseImagesMetadata.archImage2Url = updatedImageUrls[4]
-        caseImagesMetadata.archImage3Url = updatedImageUrls[5]
-        caseImagesMetadata.archImage4Url = updatedImageUrls[6]
-        caseImagesMetadata.archImage5Url = updatedImageUrls[7]
-        caseImagesMetadata.archImage6Url = updatedImageUrls[8]
-        caseImagesMetadata.archImage7Url = updatedImageUrls[9]
-        caseImagesMetadata.archImage8Url = updatedImageUrls[10]
-        caseImagesMetadata.profileImage1Url = updatedImageUrls[11]
-        caseImagesMetadata.profileImage2Url = updatedImageUrls[12]
-        caseImagesMetadata.profileImage3Url = updatedImageUrls[13]
-        caseImagesMetadata.profileImage4Url = updatedImageUrls[14]
+        val xRayImages = xRayImagesRepository.findByCaseId(caseId).orElse(XRayImagesEntity(case = caseEntity))
         
-        caseImageMetadataRepository.save(caseImagesMetadata)
-
-        if (updatedImageUrls.all { it != null }) {
-            caseToUpdate.status = "Before Start"
-            caseRepository.save(caseToUpdate)
+        images.forEachIndexed { index, file ->
+            file?.let {
+                when (index) {
+                    0 -> xRayImages.xrayImage1Url = cloudinaryService.uploadFile(it)
+                    1 -> xRayImages.xrayImage2Url = cloudinaryService.uploadFile(it)
+                    2 -> xRayImages.xrayImage3Url = cloudinaryService.uploadFile(it)
+                }
+            }
         }
+        xRayImagesRepository.save(xRayImages)
+        updateCaseStatusIfComplete(caseEntity)
+    }
 
-        return caseToUpdate
+    fun updateXrayImages(caseId: Long, username: String, images: List<MultipartFile?>) {
+        uploadXrayImages(caseId, username, images)
+    }
+
+    fun uploadProfileImages(caseId: Long, username: String, images: List<MultipartFile?>) {
+        val caseEntity = caseRepository.findById(caseId)
+            .orElseThrow { EntityNotFoundException("Case with ID $caseId not found.") }
+        val profileImages = profileImagesRepository.findByCaseId(caseId).orElse(ProfileImagesEntity(case = caseEntity))
+
+        images.forEachIndexed { index, file ->
+            file?.let {
+                when (index) {
+                    0 -> profileImages.profileImage1Url = cloudinaryService.uploadFile(it)
+                    1 -> profileImages.profileImage2Url = cloudinaryService.uploadFile(it)
+                    2 -> profileImages.profileImage3Url = cloudinaryService.uploadFile(it)
+                    3 -> profileImages.profileImage4Url = cloudinaryService.uploadFile(it)
+                }
+            }
+        }
+        profileImagesRepository.save(profileImages)
+        updateCaseStatusIfComplete(caseEntity)
+    }
+
+    fun updateProfileImages(caseId: Long, username: String, images: List<MultipartFile?>) {
+        uploadProfileImages(caseId, username, images)
+    }
+
+    fun uploadArchImages(caseId: Long, username: String, images: List<MultipartFile?>) {
+        val caseEntity = caseRepository.findById(caseId)
+            .orElseThrow { EntityNotFoundException("Case with ID $caseId not found.") }
+        val archImages = archImagesRepository.findByCaseId(caseId).orElse(ArchImagesEntity(case = caseEntity))
+
+        images.forEachIndexed { index, file ->
+            file?.let {
+                when (index) {
+                    0 -> archImages.archImage1Url = cloudinaryService.uploadFile(it)
+                    1 -> archImages.archImage2Url = cloudinaryService.uploadFile(it)
+                    2 -> archImages.archImage3Url = cloudinaryService.uploadFile(it)
+                    3 -> archImages.archImage4Url = cloudinaryService.uploadFile(it)
+                    4 -> archImages.archImage5Url = cloudinaryService.uploadFile(it)
+                    5 -> archImages.archImage6Url = cloudinaryService.uploadFile(it)
+                    6 -> archImages.archImage7Url = cloudinaryService.uploadFile(it)
+                    7 -> archImages.archImage8Url = cloudinaryService.uploadFile(it)
+                }
+            }
+        }
+        archImagesRepository.save(archImages)
+        updateCaseStatusIfComplete(caseEntity)
+    }
+
+    fun updateArchImages(caseId: Long, username: String, images: List<MultipartFile?>) {
+        uploadArchImages(caseId, username, images)
+    }
+
+    private fun updateCaseStatusIfComplete(caseEntity: CaseEntity) {
+        val xrays = xRayImagesRepository.findByCaseId(caseEntity.id!!).orElse(null)
+        val profiles = profileImagesRepository.findByCaseId(caseEntity.id!!).orElse(null)
+        val arches = archImagesRepository.findByCaseId(caseEntity.id!!).orElse(null)
+
+        if (xrays?.xrayImage1Url != null && xrays.xrayImage2Url != null && xrays.xrayImage3Url != null &&
+            profiles?.profileImage1Url != null && profiles.profileImage2Url != null && profiles.profileImage3Url != null && profiles.profileImage4Url != null &&
+            arches?.archImage1Url != null && arches.archImage2Url != null && arches.archImage3Url != null && arches.archImage4Url != null &&
+            arches.archImage5Url != null && arches.archImage6Url != null && arches.archImage7Url != null && arches.archImage8Url != null) {
+            caseEntity.status = "Before Start"
+            caseRepository.save(caseEntity)
+        }
     }
 
     fun getAllCases(): List<Any> {
@@ -138,9 +137,30 @@ class CaseService(
         return caseRepository.findByUserId(user.id!!)
     }
 
-    fun getCaseImages(caseId: Long): CaseImageMetadataEntity {
-        return caseImageMetadataRepository.findByCaseId(caseId)
-            .orElseThrow { EntityNotFoundException("Case image metadata not found for case ID $caseId") }
+    fun getCaseImages(caseId: Long): Map<String, Any?> {
+        val xrays = xRayImagesRepository.findByCaseId(caseId).orElse(null)
+        val profiles = profileImagesRepository.findByCaseId(caseId).orElse(null)
+        val arches = archImagesRepository.findByCaseId(caseId).orElse(null)
+        return mapOf(
+            "xrays" to xrays,
+            "profiles" to profiles,
+            "arches" to arches
+        )
+    }
+
+    fun getXRayImages(caseId: Long): XRayImagesEntity {
+        return xRayImagesRepository.findByCaseId(caseId)
+            .orElseThrow { EntityNotFoundException("X-Ray images not found for case ID $caseId") }
+    }
+
+    fun getProfileImages(caseId: Long): ProfileImagesEntity {
+        return profileImagesRepository.findByCaseId(caseId)
+            .orElseThrow { EntityNotFoundException("Profile images not found for case ID $caseId") }
+    }
+
+    fun getArchImages(caseId: Long): ArchImagesEntity {
+        return archImagesRepository.findByCaseId(caseId)
+            .orElseThrow { EntityNotFoundException("Arch images not found for case ID $caseId") }
     }
 
     fun getCasesByStatus(status: String): List<Any> {
@@ -174,5 +194,34 @@ class CaseService(
 
         case.status = newStatus
         return caseRepository.save(case)
+    }
+
+    fun deleteCase(caseId: Long) {
+        val case = caseRepository.findById(caseId)
+            .orElseThrow { EntityNotFoundException("Case with ID $caseId not found.") }
+
+        case.xrayImages?.let {
+            it.xrayImage1Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.xrayImage2Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.xrayImage3Url?.let { url -> cloudinaryService.deleteFile(url) }
+        }
+        case.profileImages?.let {
+            it.profileImage1Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.profileImage2Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.profileImage3Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.profileImage4Url?.let { url -> cloudinaryService.deleteFile(url) }
+        }
+        case.archImages?.let {
+            it.archImage1Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.archImage2Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.archImage3Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.archImage4Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.archImage5Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.archImage6Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.archImage7Url?.let { url -> cloudinaryService.deleteFile(url) }
+            it.archImage8Url?.let { url -> cloudinaryService.deleteFile(url) }
+        }
+
+        caseRepository.delete(case)
     }
 }

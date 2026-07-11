@@ -5,7 +5,6 @@ import com.haloalligners.constant.AppConstants
 import com.haloalligners.dto.ApiResponse
 import com.haloalligners.dto.CaseResponse
 import com.haloalligners.model.CaseEntity
-import com.haloalligners.model.CaseImageMetadataEntity
 import com.haloalligners.model.RejectedCaseEntity
 import com.haloalligners.service.CaseService
 import org.springframework.http.HttpStatus
@@ -38,29 +37,9 @@ class CaseController(
     @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
     fun createCase(
         @AuthenticationPrincipal userDetails: UserDetails,
-        @RequestPart caseJson: String,
-        @RequestPart("xrayImage1", required = false) xrayImage1: MultipartFile?,
-        @RequestPart("xrayImage2", required = false) xrayImage2: MultipartFile?,
-        @RequestPart("xrayImage3", required = false) xrayImage3: MultipartFile?,
-        @RequestPart("archImage1", required = false) archImage1: MultipartFile?,
-        @RequestPart("archImage2", required = false) archImage2: MultipartFile?,
-        @RequestPart("archImage3", required = false) archImage3: MultipartFile?,
-        @RequestPart("archImage4", required = false) archImage4: MultipartFile?,
-        @RequestPart("archImage5", required = false) archImage5: MultipartFile?,
-        @RequestPart("archImage6", required = false) archImage6: MultipartFile?,
-        @RequestPart("archImage7", required = false) archImage7: MultipartFile?,
-        @RequestPart("archImage8", required = false) archImage8: MultipartFile?,
-        @RequestPart("profileImage1", required = false) profileImage1: MultipartFile?,
-        @RequestPart("profileImage2", required = false) profileImage2: MultipartFile?,
-        @RequestPart("profileImage3", required = false) profileImage3: MultipartFile?,
-        @RequestPart("profileImage4", required = false) profileImage4: MultipartFile?,
+        @RequestBody request: CreateCaseRequest
     ): ResponseEntity<ApiResponse<CaseResponse>> {
-        val request = objectMapper.readValue(caseJson, CreateCaseRequest::class.java)
-        val newCase = caseService.createCase(userDetails.username, request,
-            listOf(xrayImage1, xrayImage2, xrayImage3, archImage1, archImage2,
-                archImage3, archImage4, archImage5, archImage6, archImage7, archImage8,
-                profileImage1, profileImage2, profileImage3, profileImage4))
-
+        val newCase = caseService.createCase(userDetails.username, request)
         val caseResponse = toCaseResponse(newCase)
         val response = ApiResponse(
             status = HttpStatus.CREATED.value(),
@@ -70,14 +49,94 @@ class CaseController(
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
-    @PutMapping("/{id}")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR') or hasAuthority('SUPER_ADMIN')")
+    fun deleteCase(@PathVariable id: Long): ResponseEntity<ApiResponse<Unit>> {
+        caseService.deleteCase(id)
+        return ResponseEntity.ok(ApiResponse(HttpStatus.OK.value(), "Case deleted successfully.", null))
+    }
+
+    @PostMapping("/{id}/xrays")
     @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
-    fun updateCase(
+    fun uploadXrayImages(
         @PathVariable id: Long,
         @AuthenticationPrincipal userDetails: UserDetails,
         @RequestPart("xrayImage1", required = false) xrayImage1: MultipartFile?,
         @RequestPart("xrayImage2", required = false) xrayImage2: MultipartFile?,
-        @RequestPart("xrayImage3", required = false) xrayImage3: MultipartFile?,
+        @RequestPart("xrayImage3", required = false) xrayImage3: MultipartFile?
+    ): ResponseEntity<ApiResponse<Unit>> {
+        caseService.uploadXrayImages(id, userDetails.username, listOf(xrayImage1, xrayImage2, xrayImage3))
+        return ResponseEntity.ok(ApiResponse(HttpStatus.OK.value(), "X-ray images uploaded successfully.", null))
+    }
+
+    @PutMapping("/{id}/xrays")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
+    fun updateXrayImages(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: UserDetails,
+        @RequestPart("xrayImage1", required = false) xrayImage1: MultipartFile?,
+        @RequestPart("xrayImage2", required = false) xrayImage2: MultipartFile?,
+        @RequestPart("xrayImage3", required = false) xrayImage3: MultipartFile?
+    ): ResponseEntity<ApiResponse<Unit>> {
+        caseService.updateXrayImages(id, userDetails.username, listOf(xrayImage1, xrayImage2, xrayImage3))
+        return ResponseEntity.ok(ApiResponse(HttpStatus.OK.value(), "X-ray images updated successfully.", null))
+    }
+
+    @GetMapping("/{id}/xrays")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR') or hasAuthority('SUPER_ADMIN')")
+    fun getXRayImages(@PathVariable id: Long): ResponseEntity<Any> {
+        try {
+            val images = caseService.getXRayImages(id)
+            return ResponseEntity.ok(images)
+        } catch (e: Exception) {
+            throw RuntimeException(AppConstants.RUNTIME_EXCEPTION_MESSAGE, e)
+        }
+    }
+
+    @PostMapping("/{id}/profile-images")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
+    fun uploadProfileImages(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: UserDetails,
+        @RequestPart("profileImage1", required = false) profileImage1: MultipartFile?,
+        @RequestPart("profileImage2", required = false) profileImage2: MultipartFile?,
+        @RequestPart("profileImage3", required = false) profileImage3: MultipartFile?,
+        @RequestPart("profileImage4", required = false) profileImage4: MultipartFile?
+    ): ResponseEntity<ApiResponse<Unit>> {
+        caseService.uploadProfileImages(id, userDetails.username, listOf(profileImage1, profileImage2, profileImage3, profileImage4))
+        return ResponseEntity.ok(ApiResponse(HttpStatus.OK.value(), "Profile images uploaded successfully.", null))
+    }
+
+    @PutMapping("/{id}/profile-images")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
+    fun updateProfileImages(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: UserDetails,
+        @RequestPart("profileImage1", required = false) profileImage1: MultipartFile?,
+        @RequestPart("profileImage2", required = false) profileImage2: MultipartFile?,
+        @RequestPart("profileImage3", required = false) profileImage3: MultipartFile?,
+        @RequestPart("profileImage4", required = false) profileImage4: MultipartFile?
+    ): ResponseEntity<ApiResponse<Unit>> {
+        caseService.updateProfileImages(id, userDetails.username, listOf(profileImage1, profileImage2, profileImage3, profileImage4))
+        return ResponseEntity.ok(ApiResponse(HttpStatus.OK.value(), "Profile images updated successfully.", null))
+    }
+
+    @GetMapping("/{id}/profile-images")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR') or hasAuthority('SUPER_ADMIN')")
+    fun getProfileImages(@PathVariable id: Long): ResponseEntity<Any> {
+        try {
+            val images = caseService.getProfileImages(id)
+            return ResponseEntity.ok(images)
+        } catch (e: Exception) {
+            throw RuntimeException(AppConstants.RUNTIME_EXCEPTION_MESSAGE, e)
+        }
+    }
+
+    @PostMapping("/{id}/arch-images")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
+    fun uploadArchImages(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: UserDetails,
         @RequestPart("archImage1", required = false) archImage1: MultipartFile?,
         @RequestPart("archImage2", required = false) archImage2: MultipartFile?,
         @RequestPart("archImage3", required = false) archImage3: MultipartFile?,
@@ -85,24 +144,39 @@ class CaseController(
         @RequestPart("archImage5", required = false) archImage5: MultipartFile?,
         @RequestPart("archImage6", required = false) archImage6: MultipartFile?,
         @RequestPart("archImage7", required = false) archImage7: MultipartFile?,
-        @RequestPart("archImage8", required = false) archImage8: MultipartFile?,
-        @RequestPart("profileImage1", required = false) profileImage1: MultipartFile?,
-        @RequestPart("profileImage2", required = false) profileImage2: MultipartFile?,
-        @RequestPart("profileImage3", required = false) profileImage3: MultipartFile?,
-        @RequestPart("profileImage4", required = false) profileImage4: MultipartFile?,
-    ): ResponseEntity<ApiResponse<CaseResponse>> {
-        val updatedCase = caseService.updateCase(id, userDetails.username,
-            listOf(xrayImage1, xrayImage2, xrayImage3, archImage1, archImage2,
-                archImage3, archImage4, archImage5, archImage6, archImage7, archImage8,
-                profileImage1, profileImage2, profileImage3, profileImage4))
+        @RequestPart("archImage8", required = false) archImage8: MultipartFile?
+    ): ResponseEntity<ApiResponse<Unit>> {
+        caseService.uploadArchImages(id, userDetails.username, listOf(archImage1, archImage2, archImage3, archImage4, archImage5, archImage6, archImage7, archImage8))
+        return ResponseEntity.ok(ApiResponse(HttpStatus.OK.value(), "Arch images uploaded successfully.", null))
+    }
 
-        val caseResponse = toCaseResponse(updatedCase)
-        val response = ApiResponse(
-            status = HttpStatus.OK.value(),
-            message = "Case '${updatedCase.caseName}' updated successfully.",
-            data = caseResponse
-        )
-        return ResponseEntity.ok(response)
+    @PutMapping("/{id}/arch-images")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR')")
+    fun updateArchImages(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: UserDetails,
+        @RequestPart("archImage1", required = false) archImage1: MultipartFile?,
+        @RequestPart("archImage2", required = false) archImage2: MultipartFile?,
+        @RequestPart("archImage3", required = false) archImage3: MultipartFile?,
+        @RequestPart("archImage4", required = false) archImage4: MultipartFile?,
+        @RequestPart("archImage5", required = false) archImage5: MultipartFile?,
+        @RequestPart("archImage6", required = false) archImage6: MultipartFile?,
+        @RequestPart("archImage7", required = false) archImage7: MultipartFile?,
+        @RequestPart("archImage8", required = false) archImage8: MultipartFile?
+    ): ResponseEntity<ApiResponse<Unit>> {
+        caseService.updateArchImages(id, userDetails.username, listOf(archImage1, archImage2, archImage3, archImage4, archImage5, archImage6, archImage7, archImage8))
+        return ResponseEntity.ok(ApiResponse(HttpStatus.OK.value(), "Arch images updated successfully.", null))
+    }
+
+    @GetMapping("/{id}/arch-images")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR') or hasAuthority('SUPER_ADMIN')")
+    fun getArchImages(@PathVariable id: Long): ResponseEntity<Any> {
+        try {
+            val images = caseService.getArchImages(id)
+            return ResponseEntity.ok(images)
+        } catch (e: Exception) {
+            throw RuntimeException(AppConstants.RUNTIME_EXCEPTION_MESSAGE, e)
+        }
     }
 
     @GetMapping
@@ -129,7 +203,7 @@ class CaseController(
 
     @GetMapping("/{id}/images")
     @PreAuthorize("hasAuthority('USER') or hasAuthority('DOCTOR') or hasAuthority('SUPER_ADMIN')")
-    fun getCaseImages(@PathVariable id: Long): ResponseEntity<CaseImageMetadataEntity> {
+    fun getCaseImages(@PathVariable id: Long): ResponseEntity<Any> {
         try {
             val images = caseService.getCaseImages(id)
             return ResponseEntity.ok(images)

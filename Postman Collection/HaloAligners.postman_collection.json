@@ -203,6 +203,32 @@
 					"response": []
 				},
 				{
+					"name": "Get Users by Case Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/users/by-case-status?status=Before Start",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"by-case-status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "Before Start"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get User by ID",
 					"request": {
 						"method": "GET",
@@ -283,24 +309,18 @@
 			"description": "Endpoints for managing user cases.",
 			"item": [
 				{
-					"name": "Create Case (Draft)",
+					"name": "Create Case",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "caseJson",
-									"value": "{\n    \"caseName\": \"Draft Case\",\n    \"patientName\": \"John Doe\",\n    \"patientAge\": 30,\n    \"patientGender\": \"Male\",\n    \"existingDisease\": \"None\"\n}",
-									"type": "text"
-								},
-								{
-									"key": "xrayImage1",
-									"type": "file",
-									"src": []
+							"mode": "raw",
+							"raw": "{\n    \"caseName\": \"John Doe - Initial Aligners\",\n    \"patientName\": \"John Doe\",\n    \"patientAge\": 35,\n    \"patientGender\": \"Male\",\n    \"existingDisease\": \"None\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
 								}
-							]
+							}
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/cases",
@@ -316,25 +336,10 @@
 					"response": []
 				},
 				{
-					"name": "Update Case (Draft)",
+					"name": "Delete Case",
 					"request": {
-						"method": "PUT",
+						"method": "DELETE",
 						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "xrayImage2",
-									"type": "file",
-									"src": []
-								},
-								{
-									"key": "profileImage1",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
 						"url": {
 							"raw": "{{baseUrl}}/api/cases/1",
 							"host": [
@@ -344,6 +349,306 @@
 								"api",
 								"cases",
 								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload X-Ray Images",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "xrayImage1",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "xrayImage2",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "xrayImage3",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/xrays",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"xrays"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update X-Ray Images",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "xrayImage1",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/xrays",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"xrays"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get X-Ray Images",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/xrays",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"xrays"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Profile Images",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "profileImage1",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "profileImage2",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "profileImage3",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "profileImage4",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/profile-images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"profile-images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile Images",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "profileImage1",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/profile-images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"profile-images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile Images",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/profile-images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"profile-images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Arch Images",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "archImage1",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "archImage2",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "archImage3",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "archImage4",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "archImage5",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "archImage6",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "archImage7",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "archImage8",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/arch-images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"arch-images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Arch Images",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "archImage1",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/arch-images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"arch-images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Arch Images",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/cases/1/arch-images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cases",
+								"1",
+								"arch-images"
 							]
 						}
 					},
@@ -363,26 +668,6 @@
 								"api",
 								"cases",
 								"my-cases"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Case Images",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/cases/1/images",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"cases",
-								"1",
-								"images"
 							]
 						}
 					},
@@ -430,137 +715,6 @@
 								"cases",
 								"1",
 								"status"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Treatment",
-			"description": "Endpoints for managing treatment stages.",
-			"item": [
-				{
-					"name": "Upload X-ray Image",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "sub_stage",
-									"value": "OPG",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/treatment/upload-xray?caseId=1",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"treatment",
-								"upload-xray"
-							],
-							"query": [
-								{
-									"key": "caseId",
-									"value": "1"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Upload Arch Image",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "arch_type",
-									"value": "Upper",
-									"type": "text"
-								},
-								{
-									"key": "sub_stage",
-									"value": "Upper_1",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/treatment/upload-arch?caseId=1",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"treatment",
-								"upload-arch"
-							],
-							"query": [
-								{
-									"key": "caseId",
-									"value": "1"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Upload Profile Image",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "image_type",
-									"value": "front",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/treatment/upload-profile-image?caseId=1",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"treatment",
-								"upload-profile-image"
-							],
-							"query": [
-								{
-									"key": "caseId",
-									"value": "1"
-								}
 							]
 						}
 					},

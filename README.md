@@ -45,8 +45,7 @@ Use the Maven wrapper to start the Spring Boot application:
 ```
 
 ### Railway Deployment Note
-PDF uploads larger than 10MB are compressed using the Ghostscript CLI (`gs`).  
-Railway must have Ghostscript installed at runtime. This repository includes a `nixpacks.toml` to install it automatically.
+PDF uploads larger than 10MB are compressed in-app using a Java PDF library, so no external Ghostscript binary is required in Railway.
 
 ---
 
