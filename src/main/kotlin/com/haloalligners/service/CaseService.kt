@@ -41,7 +41,7 @@ class CaseService(
         val xRayImages = xRayImagesRepository.findByCaseId(caseId).orElse(XRayImagesEntity(case = caseEntity))
         
         images.forEachIndexed { index, file ->
-            file?.let {
+            file?.takeUnless { it.isEmpty }?.let {
                 when (index) {
                     0 -> xRayImages.xrayImage1Url = cloudinaryService.uploadFile(it)
                     1 -> xRayImages.xrayImage2Url = cloudinaryService.uploadFile(it)
@@ -63,7 +63,7 @@ class CaseService(
         val profileImages = profileImagesRepository.findByCaseId(caseId).orElse(ProfileImagesEntity(case = caseEntity))
 
         images.forEachIndexed { index, file ->
-            file?.let {
+            file?.takeUnless { it.isEmpty }?.let {
                 when (index) {
                     0 -> profileImages.profileImage1Url = cloudinaryService.uploadFile(it)
                     1 -> profileImages.profileImage2Url = cloudinaryService.uploadFile(it)
@@ -86,7 +86,7 @@ class CaseService(
         val archImages = archImagesRepository.findByCaseId(caseId).orElse(ArchImagesEntity(case = caseEntity))
 
         images.forEachIndexed { index, file ->
-            file?.let {
+            file?.takeUnless { it.isEmpty }?.let {
                 when (index) {
                     0 -> archImages.archImage1Url = cloudinaryService.uploadFile(it)
                     1 -> archImages.archImage2Url = cloudinaryService.uploadFile(it)

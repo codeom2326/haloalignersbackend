@@ -29,6 +29,15 @@ class CloudinaryServiceTest {
     }
 
     @Test
+    fun `buildUploadRequest treats heic files as images`() {
+        val uploadRequest = service.buildUploadRequest("Scan.HEIC")
+
+        assertEquals("image", uploadRequest.resourceType)
+        assertTrue(uploadRequest.publicId.matches(Regex("scan_[0-9a-f]{6}")))
+        assertFalse(uploadRequest.publicId.endsWith(".heic"))
+    }
+
+    @Test
     fun `normalizePublicIdSegment falls back to file for blank names`() {
         assertEquals("file", service.normalizePublicIdSegment("   "))
     }

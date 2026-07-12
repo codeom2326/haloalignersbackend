@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.nio.file.Files
 import java.util.UUID
 
 @Service
@@ -26,48 +27,119 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
     private val PDF_COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024L // 10MB
     private val PDF_MAX_IMAGE_EDGE = 1800
     private val PDF_IMAGE_QUALITY = 0.65f
+    private val HEIC_EXTENSIONS = setOf("heic", "heif")
+    private val HEIC_CONTENT_TYPES = setOf("image/heic", "image/heif")
 
     fun uploadFile(file: MultipartFile): String {
+        val originalFilename = file.originalFilename?.trim().orEmpty().ifBlank { "file" }
+        if (file.isEmpty || file.size == 0L) {
+            throw IllegalArgumentException("Uploaded file $originalFilename is empty.")
+        }
         if (file.size > MAX_UPLOAD_BYTES) {
-            throw IllegalArgumentException("File ${file.originalFilename} exceeds the 25MB upload limit.")
+            throw IllegalArgumentException("File $originalFilename exceeds the 25MB upload limit.")
         }
 
         try {
-            val uploadRequest = buildUploadRequest(file.originalFilename)
+            val preparedFile = prepareFileForUpload(file)
+            val uploadRequest = buildUploadRequest(preparedFile.filename)
 
-            val params = ObjectUtils.asMap(
-                "public_id", uploadRequest.publicId,
-                "resource_type", uploadRequest.resourceType,
-                "type", "upload",
-                "access_mode", "public",
-                "overwrite", true,
-                "chunk_size", CHUNK_SIZE_BYTES
+            val params = mutableMapOf<String, Any>(
+                "public_id" to uploadRequest.publicId,
+                "resource_type" to uploadRequest.resourceType,
+                "type" to "upload",
+                "access_mode" to "public",
+                "overwrite" to true
             )
+            preparedFile.forcedFormat?.let { params["format"] = it }
 
-            val uploadResult: Map<*, *>
+            val fileBytes = preparedFile.bytes
+            val shouldCompressImage = uploadRequest.resourceType == "image" && fileBytes.size > MAX_COMPRESSIBLE_IMAGE_BYTES
+            val shouldCompressPdf = uploadRequest.resourceType == "raw" && preparedFile.filename.endsWith(".pdf", true) && fileBytes.size >= PDF_COMPRESSION_THRESHOLD_BYTES
+            val uploadBytes = when {
+                shouldCompressImage -> maybeCompressImage(fileBytes, uploadRequest.resourceType)
+                shouldCompressPdf -> compressPdf(fileBytes)
+                else -> fileBytes
+            }
+            val shouldUseChunkedUpload = preparedFile.forcedFormat == null && uploadBytes.size > CHUNK_SIZE_BYTES
 
-            val shouldCompressImage = uploadRequest.resourceType == "image" && file.size > MAX_COMPRESSIBLE_IMAGE_BYTES
-            val shouldCompressPdf = uploadRequest.resourceType == "raw" && file.originalFilename?.endsWith(".pdf", true) == true && file.size >= PDF_COMPRESSION_THRESHOLD_BYTES
-
-            if (shouldCompressImage) {
-                val compressedBytes = maybeCompressImage(file, uploadRequest.resourceType)
-                uploadResult = cloudinary.uploader().uploadLarge(compressedBytes, params)
-            } else if (shouldCompressPdf) {
-                val compressedBytes = compressPdf(file)
-                uploadResult = cloudinary.uploader().uploadLarge(compressedBytes, params)
+            val uploadResult: Map<*, *> = if (shouldUseChunkedUpload) {
+                params["chunk_size"] = CHUNK_SIZE_BYTES
+                cloudinary.uploader().uploadLarge(uploadBytes, params)
             } else {
-                uploadResult = cloudinary.uploader().uploadLarge(file.inputStream, params)
+                cloudinary.uploader().upload(uploadBytes, params)
             }
             
             return uploadResult["secure_url"] as? String ?: throw IOException("Cloudinary upload failed: secure_url not found in response.")
         } catch (e: Exception) {
-            throw RuntimeException("Could not store file ${file.originalFilename}. Please try again!", e)
+            throw RuntimeException("Could not store file $originalFilename. Please try again!", e)
         }
     }
 
-    private fun compressPdf(file: MultipartFile): ByteArray {
+    private fun prepareFileForUpload(file: MultipartFile): PreparedFile {
+        val originalFilename = file.originalFilename?.trim().orEmpty().ifBlank { "file" }
+        val fileBytes = file.bytes
+        if (!isHeicFile(file, originalFilename)) {
+            return PreparedFile(filename = originalFilename, bytes = fileBytes, forcedFormat = null)
+        }
+
+        val jpegFilename = originalFilename.substringBeforeLast('.', originalFilename) + ".jpg"
+        return try {
+            val jpegBytes = convertHeicToJpeg(fileBytes, originalFilename)
+            logger.info("Converted HEIC/HEIF '{}' to JPG before Cloudinary upload.", originalFilename)
+            PreparedFile(filename = jpegFilename, bytes = jpegBytes, forcedFormat = null)
+        } catch (e: Exception) {
+            logger.warn("Local HEIC/HEIF conversion failed for '{}'. Falling back to Cloudinary JPG output format.", originalFilename, e)
+            PreparedFile(filename = originalFilename, bytes = fileBytes, forcedFormat = "jpg")
+        }
+    }
+
+    private fun isHeicFile(file: MultipartFile, filename: String): Boolean {
+        val extension = filename.substringAfterLast('.', "").lowercase()
+        val contentType = file.contentType?.lowercase()
+        return extension in HEIC_EXTENSIONS || contentType in HEIC_CONTENT_TYPES
+    }
+
+    private fun convertHeicToJpeg(fileBytes: ByteArray, filename: String): ByteArray {
+        val extension = filename.substringAfterLast('.', "heic").lowercase().ifBlank { "heic" }
+        val inputFile = Files.createTempFile("heic-upload-", ".${extension}")
+        val outputFile = Files.createTempFile("heic-upload-", ".jpg")
+
         try {
-            Loader.loadPDF(file.bytes).use { document ->
+            Files.write(inputFile, fileBytes)
+            Files.deleteIfExists(outputFile)
+
+            val process = ProcessBuilder(
+                "sips",
+                "-s", "format", "jpeg",
+                inputFile.toString(),
+                "--out", outputFile.toString()
+            )
+                .redirectErrorStream(true)
+                .start()
+
+            val commandOutput = process.inputStream.bufferedReader().use { it.readText() }
+            val exitCode = process.waitFor()
+            if (exitCode != 0) {
+                throw IllegalStateException("sips failed with exit code $exitCode: $commandOutput")
+            }
+            if (!Files.exists(outputFile)) {
+                throw IllegalStateException("sips did not create an output file.")
+            }
+
+            val jpegBytes = Files.readAllBytes(outputFile)
+            if (jpegBytes.isEmpty()) {
+                throw IllegalStateException("sips produced an empty JPG output.")
+            }
+            return jpegBytes
+        } finally {
+            Files.deleteIfExists(inputFile)
+            Files.deleteIfExists(outputFile)
+        }
+    }
+
+    private fun compressPdf(fileBytes: ByteArray): ByteArray {
+        try {
+            Loader.loadPDF(fileBytes).use { document ->
                 recompressPdfImages(document)
 
                 val outputStream = ByteArrayOutputStream()
@@ -153,7 +225,7 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
         val extension = url.substringAfterLast('.').lowercase()
         return when (extension) {
             "pdf" -> "raw"
-            "jpg", "jpeg", "png", "gif" -> "image"
+            "jpg", "jpeg", "png", "gif", "heic", "heif" -> "image"
             else -> "auto"
         }
     }
@@ -163,7 +235,7 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
         val extension = safeFilename.substringAfterLast('.', "").lowercase()
         val resourceType = when (extension) {
             "pdf" -> "raw"
-            "jpg", "jpeg", "png", "gif" -> "image"
+            "jpg", "jpeg", "png", "gif", "heic", "heif" -> "image"
             else -> "auto"
         }
 
@@ -187,13 +259,13 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
             .ifBlank { "file" }
     }
 
-    private fun maybeCompressImage(file: MultipartFile, resourceType: String): ByteArray {
-        if (resourceType != "image" || file.size <= MAX_COMPRESSIBLE_IMAGE_BYTES) {
-            return file.bytes
+    private fun maybeCompressImage(fileBytes: ByteArray, resourceType: String): ByteArray {
+        if (resourceType != "image" || fileBytes.size <= MAX_COMPRESSIBLE_IMAGE_BYTES) {
+            return fileBytes
         }
 
         val outputStream = ByteArrayOutputStream()
-        Thumbnails.of(ByteArrayInputStream(file.bytes))
+        Thumbnails.of(ByteArrayInputStream(fileBytes))
             .size(1920, 1080)
             .outputQuality(0.8)
             .toOutputStream(outputStream)
@@ -203,5 +275,11 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
     internal data class UploadRequest(
         val resourceType: String,
         val publicId: String
+    )
+
+    private data class PreparedFile(
+        val filename: String,
+        val bytes: ByteArray,
+        val forcedFormat: String?
     )
 }
