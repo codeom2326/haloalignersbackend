@@ -241,7 +241,7 @@ class AuthService(
         val allUsers = if (requestStatus.isNullOrBlank()) {
             clinicContactsAndLabPartnersRepository.findAll()
         } else {
-            clinicContactsAndLabPartnersRepository.findAll().filter { it.registrationStatus == requestStatus }
+            clinicContactsAndLabPartnersRepository.findAll().filter { it.registrationStatus.equals(requestStatus, ignoreCase = true) }
         }
 
         return allUsers.filter { it.role != "SUPER_ADMIN" }.map {
