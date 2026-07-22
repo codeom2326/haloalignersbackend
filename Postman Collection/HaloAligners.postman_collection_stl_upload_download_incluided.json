@@ -1,0 +1,535 @@
+{
+  "info": {
+    "_postman_id": "1acbd87e-2935-4fae-8b04-e6eee0f17091",
+    "name": "HaloAligners Copy",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55273671",
+    "_collection_link": "https://go.postman.co/collection/55273671-1acbd87e-2935-4fae-8b04-e6eee0f17091?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Get My Cases",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/my-cases",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "my-cases"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register Clinic (with Photo)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "user",
+              "value": "{\n    \"username\": \"drjane12\",\n    \"password\": \"password123\",\n    \"role\": \"USER\",\n\t\"landLine\": \"190029384952\",\n\t\"mobile\": \"98765432102\",\n    \"email\": \"jane.doe2@example.com\",\n\t\"preferredPartnerCrown\": \"Crown1\",\n\t\"preferredPartnerImplants\": \"Implant1\",\n\t\"registrationStatus\": \"Under Approval\",\n    \"fullName\": \"Dr. Jane Doe\",\n\t\"doctorRegistrationNumber\": \"36BVCGF020\",\n\t\"pan\": \"ABCDE1234I\",\n\t\"practitionerCategory\": \"Private Practitioner\",\n\t\"businessArea\": \"Nobel Biocare\",\n    \"clinicName\": \"Doe's Dental Care\",\n\t\"addressLine1\": \"Flat 302, 3rd Floor\",\n\t\"addressLine2\": \"Apex Aligner Heights, B-Wing\",\n\t\"addressLine3\": \"Opposite Dental Park\",\n\t\"addressLine4\": \"Kalinga Hospital Road\",\n\t\"addressLine5\": \"Bhubaneswar - 751024, Odisha\",\n\t\"isDispatchAddressSameAsInvoice\": true,\n\t\"addressProofType\": \"Aadhar Card\",\n\t\"isClinicGstRegistered\": \"\",\n    \"gstNumber\": \"22AAAAA0000A1Z7\",\n\t\"doctorRegistrationCertificate\": true,\n\t\"letterHeadOrVisitingCard\": true,\n\t\"panCard\": true\n}",
+              "type": "text"
+            },
+            {
+              "key": "addressProof",
+              "type": "file",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.04 PM.jpeg"
+            },
+            {
+              "key": "gstCertificate",
+              "type": "file",
+              "uuid": "2d385f11-c580-4f2c-8203-a98a0af66434",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.04 PM1.jpeg"
+            },
+            {
+              "key": "pan",
+              "type": "file",
+              "uuid": "a3d9d1a8-6646-48e1-bc0c-80b6b3efe7b3",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.05 PM.jpeg"
+            },
+            {
+              "key": "registrationCertificate",
+              "type": "file",
+              "uuid": "ea64363e-598b-4933-a417-0553e830e8e1",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.05 PM1.jpeg"
+            },
+            {
+              "key": "letterheadOrVisitingCard",
+              "type": "file",
+              "uuid": "72f08322-2d3f-46bb-8df4-6318e3ac7538",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.05 PM2.jpeg"
+            },
+            {
+              "key": "signatureOrStamp",
+              "type": "file",
+              "uuid": "d005e82e-2eb2-4785-9ec2-79b7e7553b6d",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.06 PM4.jpeg"
+            },
+            {
+              "key": "photo",
+              "type": "file",
+              "uuid": "14fc0aad-1a8b-4e33-820a-a056aff2ff83",
+              "src": "/C:/Users/abhie/OneDrive/Documents/Awani/Science/WhatsApp Image 2026-07-01 at 2.11.06 PM5.jpeg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getAllUsersByStatus",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/users?requestStatus=Approved",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "requestStatus",
+              "value": "Approved"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getAllUsersById",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/user?id=6",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "user"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "6"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "updateUserStatus",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/users?id=6&status=Rejected",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "6"
+            },
+            {
+              "key": "status",
+              "value": "Rejected"
+            },
+            {
+              "key": "",
+              "value": null,
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login (user)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"mishraom60\",\r\n    \"password\": \"password\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login (superadmin)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"superadmin\",\r\n    \"password\": \"password\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "createCase",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{supabase_service_role_api_key_1dus}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "caseJson",
+              "type": "text",
+              "uuid": "43e86169-a350-42d4-a999-46463abe2a9a",
+              "value": "{\"caseName\": \"Case4\",\"patientName\": \"Anurag Mishra\",\"patientAge\": 44,\"patientGender\": \"Male\",\"existingDisease\": \"NA\"}"
+            },
+            {
+              "key": "xrayImage1",
+              "type": "file",
+              "uuid": "324a08d5-f5da-471f-bf55-5422dff71c03",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.21.jpeg"
+            },
+            {
+              "key": "xrayImage2",
+              "type": "file",
+              "uuid": "08298150-022d-4749-a764-54dd67f60396",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.22 (1).jpeg"
+            },
+            {
+              "key": "xrayImage3",
+              "type": "file",
+              "uuid": "c1ff6a61-9fdc-4db9-9813-2281978f5af5",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.22.jpeg"
+            },
+            {
+              "key": "archImage1",
+              "type": "file",
+              "uuid": "a758784b-1429-4c74-a337-8740d8e7f053",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.23 (1).jpeg"
+            },
+            {
+              "key": "archImage2",
+              "type": "file",
+              "uuid": "b5c2a0ea-3912-4738-a24a-e5dbb000e35a",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.21.jpeg"
+            },
+            {
+              "key": "archImage3",
+              "type": "file",
+              "uuid": "826e6d5b-c4e9-43ad-b93d-1b36077ad7f0",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.22 (1).jpeg"
+            },
+            {
+              "key": "archImage4",
+              "type": "file",
+              "uuid": "acd0ce25-db53-4c25-8c51-1725157c4d90",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.22.jpeg"
+            },
+            {
+              "key": "archImage5",
+              "type": "file",
+              "uuid": "6a8885d7-f0e0-45af-86c2-a48bb5319452",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.23 (1).jpeg"
+            },
+            {
+              "key": "archImage6",
+              "type": "file",
+              "uuid": "7ff581c4-d2fa-4d87-9627-77e62c75a39f",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.24 (2).jpeg"
+            },
+            {
+              "key": "archImage7",
+              "type": "file",
+              "uuid": "b7e1f950-23fc-4f8f-8ee9-4f81396af9d3",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.23 (2).jpeg"
+            },
+            {
+              "key": "archImage8",
+              "type": "file",
+              "uuid": "72be0c39-1a0e-4636-bed2-4a759047eaed",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.23.jpeg"
+            },
+            {
+              "key": "profileImage1",
+              "type": "file",
+              "uuid": "814d0ec0-a783-4b23-a5b3-559a69e14fe9",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.22 (2).jpeg"
+            },
+            {
+              "key": "profileImage2",
+              "type": "file",
+              "uuid": "dc7b28a7-2459-4ef5-abf0-93b9ba6ccaa5",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.24 (1).jpeg"
+            },
+            {
+              "key": "profileImage3",
+              "type": "file",
+              "uuid": "c58359d0-1331-48c9-bdba-2f0ece6069e0",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.24.jpeg"
+            },
+            {
+              "key": "profileImage4",
+              "type": "file",
+              "uuid": "87e11539-a9ef-4ec3-8b1b-4a925f5ddc0e",
+              "src": "/C:/Freelancer_10072026/CaseImages/WhatsApp Image 2026-07-03 at 00.52.22 (2).jpeg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/cases",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getAllCases",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_1970}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getCaseByStatus",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_18pl}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/byStatus?status=Pre Treatment",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "byStatus"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "Pre Treatment"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getCaseById",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_18pl}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/byId?id=2",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "byId"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "updateCase",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_18pl}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"status\": \"Case Rejected\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/1/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "1",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "uploadStlFiles",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "getStlImages",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "supabase_service_role_api_key_07en"
+    },
+    {
+      "key": "bearer_token_11qm"
+    },
+    {
+      "key": "bearer_token_1970"
+    },
+    {
+      "key": "json_web_token_0g2i"
+    },
+    {
+      "key": "bearer_token_18pl"
+    },
+    {
+      "key": "supabase_service_role_api_key_19qp"
+    },
+    {
+      "key": "json_web_token_19qp"
+    },
+    {
+      "key": "supabase_service_role_api_key_1dus"
+    },
+    {
+      "key": "bearer_token_035b"
+    }
+  ]
+}

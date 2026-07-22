@@ -13,8 +13,13 @@ import org.springframework.web.multipart.MultipartFile
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import java.util.UUID
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 @Service
 class CloudinaryService(private val cloudinary: Cloudinary) {
@@ -35,7 +40,7 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
         try {
             val uploadRequest = buildUploadRequest(file.originalFilename)
 
-            val params = ObjectUtils.asMap(
+            var params = ObjectUtils.asMap(
                 "public_id", uploadRequest.publicId,
                 "resource_type", uploadRequest.resourceType,
                 "type", "upload",
@@ -48,6 +53,7 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
 
             val shouldCompressImage = uploadRequest.resourceType == "image" && file.size > MAX_COMPRESSIBLE_IMAGE_BYTES
             val shouldCompressPdf = uploadRequest.resourceType == "raw" && file.originalFilename?.endsWith(".pdf", true) == true && file.size >= PDF_COMPRESSION_THRESHOLD_BYTES
+            val shouldCompressStl = uploadRequest.resourceType == "3dimage" && file.originalFilename?.endsWith(".stl", true) == true
 
             if (shouldCompressImage) {
                 val compressedBytes = maybeCompressImage(file, uploadRequest.resourceType)
@@ -55,6 +61,8 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
             } else if (shouldCompressPdf) {
                 val compressedBytes = compressPdf(file)
                 uploadResult = cloudinary.uploader().uploadLarge(compressedBytes, params)
+            } else if (shouldCompressStl) {
+                return processAndUploadStl(file)
             } else {
                 uploadResult = cloudinary.uploader().uploadLarge(file.inputStream, params)
             }
@@ -164,6 +172,7 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
         val resourceType = when (extension) {
             "pdf" -> "raw"
             "jpg", "jpeg", "png", "gif" -> "image"
+            "stl" -> "3dimage"
             else -> "auto"
         }
 
@@ -172,6 +181,8 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
         val publicIdBase = "${normalizedBaseName}_${UUID.randomUUID().toString().substring(0, 6)}"
         val publicId = if (resourceType == "raw" && extension.isNotEmpty()) {
             "$publicIdBase.$extension"
+        } else if (resourceType == "3dimage" && extension.isNotEmpty()) {
+            ".zip"
         } else {
             publicIdBase
         }
@@ -200,8 +211,70 @@ class CloudinaryService(private val cloudinary: Cloudinary) {
         return outputStream.toByteArray()
     }
 
-    internal data class UploadRequest(
+    fun processAndUploadStl(file: MultipartFile): String {
+        val tempFilesToClean = mutableListOf<File>()
+
+        try {
+            // 1. Stage the incoming multipart file onto disk
+            val originalTempFile = File.createTempFile("uploaded-", file.originalFilename)
+                .also { tempFilesToClean.add(it) }
+
+            FileOutputStream(originalTempFile).use { it.write(file.bytes) }
+
+            // 2. Create a zip archive for the original STL file
+            val zipArchive = File.createTempFile("stl-pack-", ".zip")
+                .also { tempFilesToClean.add(it) }
+            zipFiles(originalTempFile, zipArchive) // Zip the original STL file
+
+            // 3. Configure Cloudinary parameters for the ZIP file
+            val uploadParams = ObjectUtils.asMap(
+                "resource_type", "raw", // Ensure it's treated as a raw file
+                "use_filename", true,
+                "unique_filename", true,
+                "public_id", normalizePublicIdSegment(file.originalFilename?.substringBeforeLast('.') ?: "stl_model") + "_" + UUID.randomUUID().toString().substring(0, 6)
+            )
+            val chunkSize = 6 * 1024 * 1024 // 6MB chunks
+
+            logger.info("Attempting Cloudinary upload for STL zip file: ${file.originalFilename} with params: $uploadParams")
+
+            val uploadResult: Map<*, *>
+            try {
+                // 4. Stream the zipped STL to Cloudinary
+                uploadResult = cloudinary.uploader().uploadLarge(zipArchive, uploadParams, chunkSize)
+            } catch (e: Exception) {
+                logger.error("Cloudinary upload failed for STL zip file ${file.originalFilename}. Params: $uploadParams", e)
+                throw RuntimeException("Cloudinary upload failed for STL zip file ${file.originalFilename}.", e)
+            }
+
+            val secureUrl = uploadResult["secure_url"] as? String
+                ?: run {
+                    logger.error("Cloudinary upload response did not contain 'secure_url'. Response: $uploadResult")
+                    throw IOException("Cloudinary upload failed: secure_url not found in response for STL zip file ${file.originalFilename}.")
+                }
+
+            logger.info("Successfully uploaded STL zip file ${file.originalFilename}. Secure URL: $secureUrl")
+            return secureUrl
+
+        } finally {
+            // 5. Cleanup Hook: Ensure server disk space isn't clogged
+            tempFilesToClean.forEach { if (it.exists()) it.delete() }
+        }
+    }
+
+    private fun zipFiles(file: File, targetZip: File) {
+        ZipOutputStream(FileOutputStream(targetZip)).use { zos ->
+            FileInputStream(file).use { fis ->
+                // Use the original filename for the entry inside the zip
+                val zipEntry = ZipEntry(file.name)
+                zos.putNextEntry(zipEntry)
+                fis.copyTo(zos)
+                zos.closeEntry()
+            }
+        }
+    }
+
+    data class UploadRequest(
         val resourceType: String,
-        val publicId: String
+        var publicId: String
     )
 }
