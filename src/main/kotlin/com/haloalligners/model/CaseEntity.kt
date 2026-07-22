@@ -47,5 +47,9 @@ class CaseEntity(
 
     @OneToOne(mappedBy = "case", cascade = [CascadeType.ALL], orphanRemoval = true)
     @JsonManagedReference
-    var archImages: ArchImagesEntity? = null
+    var archImages: ArchImagesEntity? = null,
+
+    @OneToOne(mappedBy = "case", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference
+    var stlImages: StlImagesEntity? = null
 )
