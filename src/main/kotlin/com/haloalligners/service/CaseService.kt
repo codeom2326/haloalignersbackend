@@ -258,28 +258,33 @@ class CaseService(
     }
 
     fun downloadAndUnzipStlFile(caseId: Long): MutableMap<String, ByteArray> {
-        // 1. Fetch file metadata record from PostgreSQL
         val record = stlImagesRepository.findByCaseId(caseId)
             .orElseThrow { NoSuchElementException("STL record not found with ID: $caseId") }
 
         val upperRestorationRecord = record.stlUpperImageUrl!!.split("::")
-        val upperRestorationOriginalFileName = upperRestorationRecord[0]
-
         val lowerRestorationRecord = record.stlLowerImageUrl!!.split("::")
+
+        if(upperRestorationRecord.size<2 || lowerRestorationRecord.size<2){
+            throw NoSuchElementException("STL record not found with ID: $caseId")
+        }
+
+        val upperRestorationOriginalFileName = upperRestorationRecord[0]
         val lowerRestorationOriginalFileName = lowerRestorationRecord[0]
 
-        // 2. Fetch the compressed zip file directly from Cloudinary URL
-        val upperRestorationZipBytes = URI.create(upperRestorationRecord[1]).toURL().readBytes()
-        val lowerRestorationZipBytes = URI.create(lowerRestorationRecord[1]).toURL().readBytes()
+        try {
+            val upperRestorationZipBytes = URI.create(upperRestorationRecord[1]).toURL().readBytes()
+            val lowerRestorationZipBytes = URI.create(lowerRestorationRecord[1]).toURL().readBytes()
 
-        // 3. Unzip content in memory
-        val upperRestorationUnzippedBytes = unzipSingleFile(upperRestorationZipBytes)
-        val lowerRestorationUnzippedBytes = unzipSingleFile(lowerRestorationZipBytes)
+            val upperRestorationUnzippedBytes = unzipSingleFile(upperRestorationZipBytes)
+            val lowerRestorationUnzippedBytes = unzipSingleFile(lowerRestorationZipBytes)
 
-        return mutableMapOf(
-            upperRestorationOriginalFileName to upperRestorationUnzippedBytes,
-            lowerRestorationOriginalFileName to lowerRestorationUnzippedBytes
-        )
+            return mutableMapOf(
+                upperRestorationOriginalFileName to upperRestorationUnzippedBytes,
+                lowerRestorationOriginalFileName to lowerRestorationUnzippedBytes
+            )
+        } catch (ex: Exception){
+            throw Exception(ex.message)
+        }
     }
 
     private fun unzipSingleFile(zipBytes: ByteArray): ByteArray {
